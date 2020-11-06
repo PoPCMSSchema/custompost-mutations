@@ -13,6 +13,9 @@ use PoP\ComponentModel\MutationResolvers\AbstractComponentMutationResolverBridge
 
 abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends AbstractComponentMutationResolverBridge
 {
+    /**
+     * @param mixed $result_id Maybe an int, maybe a string
+     */
     public function getSuccessString($result_id): ?string
     {
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
@@ -35,7 +38,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
     /**
      * @param mixed $result_id Maybe an int, maybe a string
      */
-    public function modifyDataProperties(array &$data_properties, $result_id): void
+    protected function modifyDataProperties(array &$data_properties, $result_id): void
     {
         parent::modifyDataProperties($data_properties, $result_id);
 
