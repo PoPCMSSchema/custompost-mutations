@@ -13,7 +13,7 @@ use PoP\ComponentModel\MutationResolvers\AbstractComponentMutationResolverBridge
 
 abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends AbstractComponentMutationResolverBridge
 {
-    public function getSuccessString($result_id): string
+    public function getSuccessString($result_id): ?string
     {
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
         $status = $customPostTypeAPI->getStatus($result_id);
