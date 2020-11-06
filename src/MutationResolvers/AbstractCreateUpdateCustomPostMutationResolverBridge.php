@@ -9,9 +9,9 @@ use PoPSchema\CustomPosts\Types\Status;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
 use PoP\ComponentModel\ModuleProcessors\DataloadingConstants;
-use PoP\ComponentModel\MutationResolvers\AbstractComponentMutationResolverBridge;
+use PoP\ComponentModel\MutationResolvers\AbstractCRUDComponentMutationResolverBridge;
 
-abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends AbstractComponentMutationResolverBridge
+abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends AbstractCRUDComponentMutationResolverBridge
 {
     /**
      * @param mixed $result_id Maybe an int, maybe a string
@@ -48,7 +48,5 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
             Status::DRAFT,
         ];
     }
-
-    abstract public function getMutationResolverClass(): string;
 }
 
