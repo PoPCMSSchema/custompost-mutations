@@ -13,6 +13,7 @@ use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
 use PoP\ComponentModel\MutationResolvers\MutationResolverInterface;
+use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver implements MutationResolverInterface
 {
@@ -269,7 +270,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
 
     protected function getCreatepostData($form_data)
     {
-
         // Status: Validate the value is permitted, or get the default value otherwise
         $status = \GD_CreateUpdate_Utils::getCreatepostStatus($form_data['status'], $this->moderate());
         $post_data = array(
@@ -288,15 +288,18 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         return $post_data;
     }
 
-    protected function executeUpdatepost($post_data)
+    /**
+     * @param array<string, mixed> $data
+     * @return mixed the ID of the updated custom post
+     */
+    protected function executeUpdatepost(array $data)
     {
-        $cmseditpostsapi = \PoP\EditPosts\FunctionAPIFactory::getInstance();
-        return $cmseditpostsapi->updatePost($post_data);
+        $customPostTypeAPI = MutationCustomPostTypeAPIFacade::getInstance();
+        return $customPostTypeAPI->updateCustomPost($data);
     }
 
     protected function createupdatepost(&$errors, $form_data, $post_id)
     {
-
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
         $taxonomy = $this->getCategoryTaxonomy();
@@ -357,10 +360,14 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:update', $post_id, $log, $form_data);
     }
 
-    protected function executeCreatepost($post_data)
+    /**
+     * @param array<string, mixed> $data
+     * @return mixed the ID of the created custom post
+     */
+    protected function executeCreatepost(array $data)
     {
-        $cmseditpostsapi = \PoP\EditPosts\FunctionAPIFactory::getInstance();
-        return $cmseditpostsapi->insertPost($post_data);
+        $customPostTypeAPI = MutationCustomPostTypeAPIFacade::getInstance();
+        return $customPostTypeAPI->createCustomPost($data);
     }
 
     protected function createpost(&$errors, $form_data)
