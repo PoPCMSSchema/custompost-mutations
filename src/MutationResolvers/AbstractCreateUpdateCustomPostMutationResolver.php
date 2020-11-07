@@ -12,9 +12,10 @@ use PoPSchema\CustomPosts\Types\Status;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
+use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
 
-abstract class AbstractCreateUpdateCustomPostMutationResolver implements CustomPostMutationResolverInterface
+abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
     protected function getCategoryTaxonomy(): ?string
     {
@@ -384,18 +385,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements CustomP
 
     protected function update(array &$errors, array $form_data)
     {
-        // If already exists any of these errors above, return errors
-        $this->validateupdate($errors);
-        if ($errors) {
-            return;
-        }
-
-        $this->validateupdatecontent($errors, $form_data);
-        $this->validatecontent($errors, $form_data);
-        if ($errors) {
-            return;
-        }
-
         // Do the Post update
         $this->updatepost($errors, $form_data);
         // if ($errors) {
@@ -408,18 +397,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements CustomP
 
     protected function create(array &$errors, array $form_data)
     {
-        // If already exists any of these errors above, return errors
-        $this->validatecreate($errors);
-        if ($errors) {
-            return;
-        }
-
-        $this->validatecreatecontent($errors, $form_data);
-        $this->validatecontent($errors, $form_data);
-        if ($errors) {
-            return;
-        }
-
         // Do the Post update
         $post_id = $this->createpost($errors, $form_data);
         return $post_id;
