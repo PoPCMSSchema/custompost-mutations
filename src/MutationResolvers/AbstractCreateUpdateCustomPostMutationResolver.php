@@ -17,9 +17,9 @@ use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCus
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver implements MutationResolverInterface
 {
-    protected function getCategoryTaxonomy()
+    protected function getCategoryTaxonomy(): ?string
     {
-        return 'category';
+        return null;
     }
 
     protected function addParentCategories()
@@ -222,17 +222,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         return $categories;
     }
 
-    protected function maybeAddCustomPostCategories(&$post_data, $form_data)
-    {
-        // Only if it is a post_category
-        if ($this->getCategoryTaxonomy() == 'category') {
-            if ($cats = $form_data['categories']) {
-                $cats = $this->maybeAddParentCategories($cats);
-                $post_data['post-categories'] = $cats;
-            }
-        }
-    }
-
     protected function maybeAddCustomPostType(&$post_data, $form_data)
     {
         if ($post_type = $this->getCustomPostType()) {
@@ -251,8 +240,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
             $post_data['post-title'] = $form_data['title'];
         }
 
-        // Add Post Categories and Post Type
-        $this->maybeAddCustomPostCategories($post_data, $form_data);
         $this->maybeAddCustomPostType($post_data, $form_data);
 
         // Status: Validate the value is permitted, or get the default value otherwise
@@ -281,8 +268,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
             $post_data['post-title'] = $form_data['title'];
         }
 
-        // Add Post Categories and Post Type
-        $this->maybeAddCustomPostCategories($post_data, $form_data);
         $this->maybeAddCustomPostType($post_data, $form_data);
 
         return $post_data;
@@ -303,11 +288,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
         $taxonomy = $this->getCategoryTaxonomy();
-        if ($taxonomy != 'category') {
-            if ($cats = $form_data['categories']) {
-                $cats = $this->maybeAddParentCategories($cats);
-                $taxonomyapi->setPostTerms($post_id, $cats, $taxonomy);
-            }
+        if ($cats = $form_data['categories']) {
+            $cats = $this->maybeAddParentCategories($cats);
+            $taxonomyapi->setPostTerms($post_id, $cats, $taxonomy);
         }
 
         $this->setfeaturedimage($errors, $post_id, $form_data);
