@@ -31,7 +31,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         );
     }
 
-    protected function getCustomPostType($form_data)
+    protected function getCustomPostType()
     {
         return null;
     }
@@ -222,7 +222,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         return $categories;
     }
 
-    protected function maybeAddPostCategories(&$post_data, $form_data)
+    protected function maybeAddCustomPostCategories(&$post_data, $form_data)
     {
         // Only if it is a post_category
         if ($this->getCategoryTaxonomy() == 'category') {
@@ -233,14 +233,14 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         }
     }
 
-    protected function maybeAddPostType(&$post_data, $form_data)
+    protected function maybeAddCustomPostType(&$post_data, $form_data)
     {
-        if ($post_type = $this->getCustomPostType($form_data)) {
+        if ($post_type = $this->getCustomPostType()) {
             $post_data['custom-post-type'] = $post_type;
         }
     }
 
-    protected function getUpdatepostData($form_data)
+    protected function getUpdateCustomPostData($form_data)
     {
         $post_data = array(
             'id' => $form_data['customPostID'],
@@ -252,8 +252,8 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         }
 
         // Add Post Categories and Post Type
-        $this->maybeAddPostCategories($post_data, $form_data);
-        $this->maybeAddPostType($post_data, $form_data);
+        $this->maybeAddCustomPostCategories($post_data, $form_data);
+        $this->maybeAddCustomPostType($post_data, $form_data);
 
         // Status: Validate the value is permitted, or get the default value otherwise
         if ($status = \GD_CreateUpdate_Utils::getUpdatepostStatus($form_data['status'], $this->moderate())) {
@@ -268,7 +268,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         return \GD_CreateUpdate_Utils::moderate();
     }
 
-    protected function getCreatepostData($form_data)
+    protected function getCreateCustomPostData($form_data)
     {
         // Status: Validate the value is permitted, or get the default value otherwise
         $status = \GD_CreateUpdate_Utils::getCreatepostStatus($form_data['status'], $this->moderate());
@@ -282,8 +282,8 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         }
 
         // Add Post Categories and Post Type
-        $this->maybeAddPostCategories($post_data, $form_data);
-        $this->maybeAddPostType($post_data, $form_data);
+        $this->maybeAddCustomPostCategories($post_data, $form_data);
+        $this->maybeAddCustomPostType($post_data, $form_data);
 
         return $post_data;
     }
@@ -292,13 +292,13 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
      * @param array<string, mixed> $data
      * @return mixed the ID of the updated custom post
      */
-    protected function executeUpdatepost(array $data)
+    protected function executeUpdateCustomPost(array $data)
     {
         $customPostTypeAPI = MutationCustomPostTypeAPIFacade::getInstance();
         return $customPostTypeAPI->updateCustomPost($data);
     }
 
-    protected function createupdatepost(&$errors, $form_data, $post_id)
+    protected function createUpdateCustomPost(&$errors, $form_data, $post_id)
     {
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
@@ -317,7 +317,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         }
     }
 
-    protected function getUpdatepostDataLog($post_id, $form_data)
+    protected function getUpdateCustomPostDataLog($post_id, $form_data)
     {
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
         $log = array(
@@ -334,22 +334,22 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
 
     protected function updatepost(&$errors, $form_data)
     {
-        $post_data = $this->getUpdatepostData($form_data);
+        $post_data = $this->getUpdateCustomPostData($form_data);
         $post_id = $post_data['id'];
 
         // Create the operation log, to see what changed. Needed for
         // - Send email only when post published
         // - Add user notification of post being referenced, only when the reference is new (otherwise it will add the notification each time the user updates the post)
-        $log = $this->getUpdatepostDataLog($post_id, $form_data);
+        $log = $this->getUpdateCustomPostDataLog($post_id, $form_data);
 
-        $result = $this->executeUpdatepost($post_data);
+        $result = $this->executeUpdateCustomPost($post_data);
 
         if ($result === 0) {
             $errors[] = TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application');
             return;
         }
 
-        $this->createupdatepost($errors, $form_data, $post_id);
+        $this->createUpdateCustomPost($errors, $form_data, $post_id);
 
         // Allow for additional operations (eg: set Action categories)
         $this->additionals($post_id, $form_data);
@@ -364,7 +364,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
      * @param array<string, mixed> $data
      * @return mixed the ID of the created custom post
      */
-    protected function executeCreatepost(array $data)
+    protected function executeCreateCustomPost(array $data)
     {
         $customPostTypeAPI = MutationCustomPostTypeAPIFacade::getInstance();
         return $customPostTypeAPI->createCustomPost($data);
@@ -372,15 +372,15 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
 
     protected function createpost(&$errors, $form_data)
     {
-        $post_data = $this->getCreatepostData($form_data);
-        $post_id = $this->executeCreatepost($post_data);
+        $post_data = $this->getCreateCustomPostData($form_data);
+        $post_id = $this->executeCreateCustomPost($post_data);
 
         if ($post_id == 0) {
             $errors[] = TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application');
             return;
         }
 
-        $this->createupdatepost($errors, $form_data, $post_id);
+        $this->createUpdateCustomPost($errors, $form_data, $post_id);
 
         // Allow for additional operations (eg: set Action categories)
         $this->additionals($post_id, $form_data);
