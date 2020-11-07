@@ -12,10 +12,9 @@ use PoPSchema\CustomPosts\Types\Status;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
-use PoP\ComponentModel\MutationResolvers\MutationResolverInterface;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
 
-abstract class AbstractCreateUpdateCustomPostMutationResolver implements MutationResolverInterface
+abstract class AbstractCreateUpdateCustomPostMutationResolver implements CustomPostMutationResolverInterface
 {
     protected function getCategoryTaxonomy(): ?string
     {
@@ -29,11 +28,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
             false,
             $this
         );
-    }
-
-    protected function getCustomPostType()
-    {
-        return null;
     }
 
     protected function isFeaturedimageMandatory()
@@ -222,11 +216,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
         return $categories;
     }
 
-    protected function maybeAddCustomPostType(&$post_data, $form_data)
+    protected function addCustomPostType(&$post_data)
     {
-        if ($post_type = $this->getCustomPostType()) {
-            $post_data['custom-post-type'] = $post_type;
-        }
+        $post_data['custom-post-type'] = $this->getCustomPostType();
     }
 
     protected function getUpdateCustomPostData($form_data)
@@ -240,7 +232,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
             $post_data['post-title'] = $form_data['title'];
         }
 
-        $this->maybeAddCustomPostType($post_data, $form_data);
+        $this->addCustomPostType($post_data);
 
         // Status: Validate the value is permitted, or get the default value otherwise
         if ($status = \GD_CreateUpdate_Utils::getUpdatepostStatus($form_data['status'], $this->moderate())) {
@@ -268,7 +260,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver implements Mutatio
             $post_data['post-title'] = $form_data['title'];
         }
 
-        $this->maybeAddCustomPostType($post_data, $form_data);
+        $this->addCustomPostType($post_data);
 
         return $post_data;
     }
