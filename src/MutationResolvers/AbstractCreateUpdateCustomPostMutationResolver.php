@@ -14,6 +14,7 @@ use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
+use PoP\ComponentModel\Error;
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
@@ -276,7 +277,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $customPostTypeAPI->updateCustomPost($data);
     }
 
-    protected function createUpdateCustomPost(&$errors, $form_data, $post_id)
+    protected function createUpdateCustomPost($form_data, $post_id)
     {
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
@@ -286,7 +287,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
             $taxonomyapi->setPostTerms($post_id, $cats, $taxonomy);
         }
 
-        $this->setfeaturedimage($errors, $post_id, $form_data);
+        $this->setfeaturedimage($post_id, $form_data);
 
         if (isset($form_data['references'])) {
             \PoPSchema\CustomPostMeta\Utils::updateCustomPostMeta($post_id, GD_METAKEY_POST_REFERENCES, $form_data['references']);
@@ -308,7 +309,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $log;
     }
 
-    protected function updatepost(&$errors, $form_data)
+    protected function updatepost($form_data)
     {
         $post_data = $this->getUpdateCustomPostData($form_data);
         $post_id = $post_data['id'];
@@ -321,11 +322,13 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $result = $this->executeUpdateCustomPost($post_data);
 
         if ($result === 0) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application');
-            return;
+            return new Error(
+                'update-error',
+                TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
+            );
         }
 
-        $this->createUpdateCustomPost($errors, $form_data, $post_id);
+        $this->createUpdateCustomPost($form_data, $post_id);
 
         // Allow for additional operations (eg: set Action categories)
         $this->additionals($post_id, $form_data);
@@ -346,17 +349,19 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $customPostTypeAPI->createCustomPost($data);
     }
 
-    protected function createpost(&$errors, $form_data)
+    protected function createpost($form_data)
     {
         $post_data = $this->getCreateCustomPostData($form_data);
         $post_id = $this->executeCreateCustomPost($post_data);
 
         if ($post_id == 0) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application');
-            return;
+            return new Error(
+                'create-error',
+                TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
+            );
         }
 
-        $this->createUpdateCustomPost($errors, $form_data, $post_id);
+        $this->createUpdateCustomPost($form_data, $post_id);
 
         // Allow for additional operations (eg: set Action categories)
         $this->additionals($post_id, $form_data);
@@ -369,7 +374,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $post_id;
     }
 
-    protected function setfeaturedimage(&$errors, $post_id, $form_data)
+    protected function setfeaturedimage($post_id, $form_data)
     {
         if (isset($form_data['featuredimage'])) {
             $featuredimage = $form_data['featuredimage'];
@@ -383,28 +388,13 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         }
     }
 
-    protected function update(array &$errors, array $form_data)
+    protected function update(array $form_data)
     {
-        // Do the Post update
-        $this->updatepost($errors, $form_data);
-        // if ($errors) {
-        //     return;
-        // }
-
-        // No errors, return empty array (signifying no errors);
-        // return array();
+        return $this->updatepost($form_data);
     }
 
-    protected function create(array &$errors, array $form_data)
+    protected function create(array $form_data)
     {
-        // Do the Post update
-        $post_id = $this->createpost($errors, $form_data);
-        return $post_id;
-        // if ($errors) {
-        //     return;
-        // }
-
-        // // No errors, return empty array (signifying no errors);
-        // return array();
+        return $this->createpost($form_data);
     }
 }
