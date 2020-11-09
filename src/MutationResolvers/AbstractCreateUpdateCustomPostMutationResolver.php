@@ -309,7 +309,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $log;
     }
 
-    protected function updatepost($form_data)
+    protected function update(array $form_data)
     {
         $post_data = $this->getUpdateCustomPostData($form_data);
         $post_id = $post_data['id'];
@@ -337,6 +337,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         // Inject Share profiles here
         HooksAPIFacade::getInstance()->doAction('gd_createupdate_post', $post_id, $form_data);
         HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:update', $post_id, $log, $form_data);
+        return $post_id;
     }
 
     /**
@@ -349,7 +350,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $customPostTypeAPI->createCustomPost($data);
     }
 
-    protected function createpost($form_data)
+    protected function create(array $form_data)
     {
         $post_data = $this->getCreateCustomPostData($form_data);
         $post_id = $this->executeCreateCustomPost($post_data);
@@ -386,15 +387,5 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
                 \delete_post_thumbnail($post_id);
             }
         }
-    }
-
-    protected function update(array $form_data)
-    {
-        return $this->updatepost($form_data);
-    }
-
-    protected function create(array $form_data)
-    {
-        return $this->createpost($form_data);
     }
 }

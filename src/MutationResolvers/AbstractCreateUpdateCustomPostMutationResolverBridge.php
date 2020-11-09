@@ -57,6 +57,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
 
         $editor = $this->getEditorInput();
         $form_data = array(
+            // The ID is set always, but will be used only for update
             'customPostID' => $_REQUEST[POP_INPUTNAME_POSTID],
             'content' => trim($cmseditpostshelpers->kses(stripslashes($moduleprocessor_manager->getProcessor($editor)->getValue($editor)))),
         );
