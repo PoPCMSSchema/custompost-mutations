@@ -23,6 +23,12 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return null;
     }
 
+    protected function supportsTitle()
+    {
+        // Not all post types support a title
+        return true;
+    }
+
     protected function addParentCategories()
     {
         return HooksAPIFacade::getInstance()->applyFilters(
@@ -65,7 +71,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     // Update Post Validation
     protected function validatecontent(&$errors, $form_data)
     {
-        if (isset($form_data['title']) && empty($form_data['title'])) {
+        if ($this->supportsTitle() && empty($form_data['title'])) {
             $errors[] = TranslationAPIFacade::getInstance()->__('The title cannot be empty', 'pop-application');
         }
 
@@ -230,7 +236,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
             'post-content' => $form_data['content'],
         );
 
-        if (isset($form_data['title'])) {
+        if ($this->supportsTitle()) {
             $post_data['post-title'] = $form_data['title'];
         }
 
@@ -258,7 +264,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
             'custom-post-status' => $status,
         );
 
-        if (isset($form_data['title'])) {
+        if ($this->supportsTitle()) {
             $post_data['post-title'] = $form_data['title'];
         }
 
