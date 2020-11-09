@@ -237,7 +237,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         );
 
         if ($this->supportsTitle()) {
-            $post_data['post-title'] = $form_data['title'];
+            $post_data['custompost-title'] = $form_data['title'];
         }
 
         $this->addCustomPostType($post_data);
@@ -265,7 +265,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         );
 
         if ($this->supportsTitle()) {
-            $post_data['post-title'] = $form_data['title'];
+            $post_data['custompost-title'] = $form_data['title'];
         }
 
         $this->addCustomPostType($post_data);
