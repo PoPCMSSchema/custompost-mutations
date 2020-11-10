@@ -242,9 +242,11 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         $this->addCustomPostType($post_data);
 
-        // Status: Validate the value is permitted, or get the default value otherwise
-        if ($status = \GD_CreateUpdate_Utils::getUpdatepostStatus($form_data[MutationInputProperties::STATUS], $this->moderate())) {
-            $post_data['custom-post-status'] = $status;
+        // Status: If provided, Validate the value is permitted, or get the default value otherwise
+        if ($form_data[MutationInputProperties::STATUS]) {
+            if ($status = \GD_CreateUpdate_Utils::getUpdatepostStatus($form_data[MutationInputProperties::STATUS], $this->moderate())) {
+                $post_data['custom-post-status'] = $status;
+            }
         }
 
         return $post_data;
