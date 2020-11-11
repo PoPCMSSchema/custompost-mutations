@@ -30,17 +30,26 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
 
     public function getFormData(): array
     {
-        $cmseditpostshelpers = \PoP\EditPosts\HelperAPIFactory::getInstance();
         $moduleprocessor_manager = ModuleProcessorManagerFacade::getInstance();
 
-        $editor = $this->getEditorInput();
         $form_data = array(
             // The ID is set always, but will be used only for update
             MutationInputProperties::ID => $_REQUEST[POP_INPUTNAME_POSTID],
-            MutationInputProperties::CONTENT => trim($cmseditpostshelpers->kses(stripslashes($moduleprocessor_manager->getProcessor($editor)->getValue($editor)))),
-            MutationInputProperties::TITLE => trim(strip_tags($moduleprocessor_manager->getProcessor([\PoP_Module_Processor_CreateUpdatePostTextFormInputs::class, \PoP_Module_Processor_CreateUpdatePostTextFormInputs::MODULE_FORMINPUT_CUP_TITLE])->getValue([\PoP_Module_Processor_CreateUpdatePostTextFormInputs::class, \PoP_Module_Processor_CreateUpdatePostTextFormInputs::MODULE_FORMINPUT_CUP_TITLE]))),
-            MutationInputProperties::STATUS => $moduleprocessor_manager->getProcessor([\PoP_Module_Processor_CreateUpdatePostSelectFormInputs::class, \PoP_Module_Processor_CreateUpdatePostSelectFormInputs::MODULE_FORMINPUT_CUP_STATUS])->getValue([\PoP_Module_Processor_CreateUpdatePostSelectFormInputs::class, \PoP_Module_Processor_CreateUpdatePostSelectFormInputs::MODULE_FORMINPUT_CUP_STATUS]),
         );
+
+        if ($this->useTitle()) {
+            $form_data[MutationInputProperties::TITLE] = trim(strip_tags($moduleprocessor_manager->getProcessor([\PoP_Module_Processor_CreateUpdatePostTextFormInputs::class, \PoP_Module_Processor_CreateUpdatePostTextFormInputs::MODULE_FORMINPUT_CUP_TITLE])->getValue([\PoP_Module_Processor_CreateUpdatePostTextFormInputs::class, \PoP_Module_Processor_CreateUpdatePostTextFormInputs::MODULE_FORMINPUT_CUP_TITLE])));
+        }
+
+        if ($this->useContent()) {
+            $cmseditpostshelpers = \PoP\EditPosts\HelperAPIFactory::getInstance();
+            $editor = $this->getEditorInput();
+            $form_data[MutationInputProperties::CONTENT] = trim($cmseditpostshelpers->kses(stripslashes($moduleprocessor_manager->getProcessor($editor)->getValue($editor))));
+        }
+
+        if ($this->useStatus()) {
+            $form_data[MutationInputProperties::STATUS] = $moduleprocessor_manager->getProcessor([\PoP_Module_Processor_CreateUpdatePostSelectFormInputs::class, \PoP_Module_Processor_CreateUpdatePostSelectFormInputs::MODULE_FORMINPUT_CUP_STATUS])->getValue([\PoP_Module_Processor_CreateUpdatePostSelectFormInputs::class, \PoP_Module_Processor_CreateUpdatePostSelectFormInputs::MODULE_FORMINPUT_CUP_STATUS]);
+        }
 
         if ($this->showCategories()) {
             $form_data[MutationInputProperties::CATEGORIES] = $this->getCategories();
@@ -80,6 +89,21 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
         }
 
         return array();
+    }
+
+    protected function useTitle(): bool
+    {
+        return true;
+    }
+
+    protected function useContent(): bool
+    {
+        return true;
+    }
+
+    protected function useStatus(): bool
+    {
+        return true;
     }
 
     protected function showCategories()
