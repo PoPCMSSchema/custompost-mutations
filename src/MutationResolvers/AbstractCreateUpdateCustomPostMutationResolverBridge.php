@@ -28,13 +28,23 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
         ];
     }
 
+    /**
+     * The ID comes directly as a parameter in the request, it's not a form field
+     *
+     * @return mixed
+     */
+    protected function getUpdateCustomPostID()
+    {
+        return $_REQUEST[POP_INPUTNAME_POSTID];
+    }
+
     public function getFormData(): array
     {
         $moduleprocessor_manager = ModuleProcessorManagerFacade::getInstance();
 
         $form_data = array(
             // The ID is set always, but will be used only for update
-            MutationInputProperties::ID => $_REQUEST[POP_INPUTNAME_POSTID],
+            MutationInputProperties::ID => $this->getUpdateCustomPostID(),
         );
 
         if ($this->useTitle()) {
