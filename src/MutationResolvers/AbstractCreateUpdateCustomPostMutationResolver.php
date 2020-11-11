@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace PoPSchema\CustomPostMutations\MutationResolvers;
 
-define('POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_ATLEASTONE', 1);
-define('POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_EXACTLYONE', 2);
-
+use PoP\ComponentModel\Error;
 use PoP\Hooks\Facades\HooksAPIFacade;
 use PoPSchema\CustomPosts\Types\Status;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
+use PoP\ComponentModel\Facades\Instances\InstanceManagerFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
-use PoP\ComponentModel\Error;
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
@@ -23,84 +21,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return null;
     }
 
-    protected function supportsTitle()
-    {
-        // Not all post types support a title
-        return true;
-    }
-
-    protected function addParentCategories()
-    {
-        return HooksAPIFacade::getInstance()->applyFilters(
-            'GD_CreateUpdate_Post:add-parent-categories',
-            false,
-            $this
-        );
-    }
-
-    protected function isFeaturedimageMandatory()
-    {
-        return false;
-    }
-
-    protected function validateCategories(array $form_data)
-    {
-        if (isset($form_data[MutationInputProperties::CATEGORIES])) {
-            if (is_array($form_data[MutationInputProperties::CATEGORIES])) {
-                return POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_ATLEASTONE;
-            }
-
-            return POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_EXACTLYONE;
-        }
-
-        return null;
-    }
-
-    protected function getCategoriesErrorMessages()
-    {
-        return HooksAPIFacade::getInstance()->applyFilters(
-            'GD_CreateUpdate_Post:categories-validation:error',
-            array(
-                'empty-categories' => TranslationAPIFacade::getInstance()->__('The categories have not been set', 'pop-application'),
-                'empty-category' => TranslationAPIFacade::getInstance()->__('The category has not been set', 'pop-application'),
-                'only-one' => TranslationAPIFacade::getInstance()->__('Only one category can be selected', 'pop-application'),
-            )
-        );
-    }
-
     // Update Post Validation
     protected function validatecontent(&$errors, $form_data)
     {
-        if ($this->supportsTitle() && empty($form_data[MutationInputProperties::TITLE])) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('The title cannot be empty', 'pop-application');
-        }
-
-        // Validate the following conditions only if status = pending/publish
-        if ($form_data[MutationInputProperties::STATUS] == Status::DRAFT) {
-            return;
-        }
-
-        if (empty($form_data[MutationInputProperties::CONTENT])) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('The content cannot be empty', 'pop-application');
-        }
-
-        if ($this->isFeaturedimageMandatory() && empty($form_data[MutationInputProperties::FEATUREDIMAGE])) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('The featured image has not been set', 'pop-application');
-        }
-
-        if ($validateCategories = $this->validateCategories($form_data)) {
-            $category_error_msgs = $this->getCategoriesErrorMessages();
-            if (empty($form_data[MutationInputProperties::CATEGORIES])) {
-                if ($validateCategories == POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_ATLEASTONE) {
-                    $errors[] = $category_error_msgs['empty-categories'];
-                } elseif ($validateCategories == POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_EXACTLYONE) {
-                    $errors[] = $category_error_msgs['empty-category'];
-                }
-            } elseif (count($form_data[MutationInputProperties::CATEGORIES]) > 1 && $validateCategories == POP_POSTSCREATION_CONSTANT_VALIDATECATEGORIESTYPE_EXACTLYONE) {
-                $errors[] = $category_error_msgs['only-one'];
-            }
-        }
-
         // Allow plugins to add validation for their fields
         HooksAPIFacade::getInstance()->doAction(
             'GD_CreateUpdate_Post:validatecontent',
@@ -114,9 +37,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
     protected function validateupdatecontent(&$errors, $form_data)
     {
-        if (isset($form_data[MutationInputProperties::REFERENCES]) && in_array($form_data[MutationInputProperties::ID], $form_data[MutationInputProperties::REFERENCES])) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('The post cannot be a response to itself', 'pop-postscreation');
-        }
     }
 
     // Update Post Validation
@@ -148,23 +68,18 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
             return;
         }
 
-        if (!in_array($customPostTypeAPI->getStatus($post_id), array(Status::DRAFT, Status::PENDING, Status::PUBLISHED))) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('Hmmmmm, this post seems to have been deleted...', 'pop-application');
-            return;
+        $status = $customPostTypeAPI->getStatus($post_id);
+        $instanceManager = InstanceManagerFacade::getInstance();
+        /**
+         * @var CustomPostStatusEnum
+         */
+        $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
+        if (!in_array($status, $customPostStatusEnum->getValues())) {
+            $errors[] = sprintf(
+                TranslationAPIFacade::getInstance()->__('Status \'%s\' is not supported', 'pop-application'),
+                $status
+            );
         }
-
-        // Validation below not needed, since this is done in the Checkpoint already
-        // // Validate user permission
-        // if (!gdCurrentUserCanEdit($post_id)) {
-        //     $errors[] = TranslationAPIFacade::getInstance()->__('Your user doesn\'t have permission for editing.', 'pop-application');
-        // }
-
-        // // The nonce comes directly as a parameter in the request, it's not a form field
-        // $nonce = $_REQUEST[POP_INPUTNAME_NONCE];
-        // if (!gdVerifyNonce($nonce, GD_NONCE_EDITURL, $post_id)) {
-        //     $errors[] = TranslationAPIFacade::getInstance()->__('Incorrect URL', 'pop-application');
-        //     return;
-        // }
     }
 
     /**
@@ -172,24 +87,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
      */
     protected function additionals($post_id, $form_data)
     {
-        // Topics
-        if (\PoP_ApplicationProcessors_Utils::addCategories()) {
-            \PoPSchema\CustomPostMeta\Utils::updateCustomPostMeta($post_id, GD_METAKEY_POST_CATEGORIES, $form_data[MutationInputProperties::TOPICS]);
-        }
-
-        // Only if the Volunteering is enabled
-        if (defined('POP_VOLUNTEERING_INITIALIZED')) {
-            if (defined('POP_VOLUNTEERING_ROUTE_VOLUNTEER') && POP_VOLUNTEERING_ROUTE_VOLUNTEER) {
-                // Volunteers Needed?
-                if (isset($form_data[MutationInputProperties::VOLUNTEERSNEEDED])) {
-                    \PoPSchema\CustomPostMeta\Utils::updateCustomPostMeta($post_id, GD_METAKEY_POST_VOLUNTEERSNEEDED, $form_data[MutationInputProperties::VOLUNTEERSNEEDED], true, true);
-                }
-            }
-        }
-
-        if (\PoP_ApplicationProcessors_Utils::addAppliesto()) {
-            \PoPSchema\CustomPostMeta\Utils::updateCustomPostMeta($post_id, GD_METAKEY_POST_APPLIESTO, $form_data[MutationInputProperties::APPLIESTO]);
-        }
     }
     /**
      * Function to override
@@ -204,73 +101,42 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     {
     }
 
-    protected function maybeAddParentCategories($categories)
-    {
-        $categoryapi = \PoPSchema\Categories\FunctionAPIFactory::getInstance();
-        // If the categories are nested under other categories, ask if to add those too
-        if ($this->addParentCategories()) {
-            // Use a while, to also check if the parent category has a parent itself
-            $i = 0;
-            while ($i < count($categories)) {
-                $cat = $categories[$i];
-                $i++;
+    // protected function addCustomPostType(&$post_data)
+    // {
+    //     $post_data['custom-post-type'] = $this->getCustomPostType();
+    // }
 
-                if ($parent_cat = $categoryapi->getCategoryParent($cat)) {
-                    $categories[] = $parent_cat;
-                }
-            }
+    protected function addCreateUpdateCustomPostData(array &$post_data, array $form_data)
+    {
+        if (isset($form_data[MutationInputProperties::CONTENT])) {
+            $post_data['post-content'] = $form_data[MutationInputProperties::CONTENT];
         }
-
-        return $categories;
-    }
-
-    protected function addCustomPostType(&$post_data)
-    {
-        $post_data['custom-post-type'] = $this->getCustomPostType();
+        if (isset($form_data[MutationInputProperties::TITLE])) {
+            $post_data['custompost-title'] = $form_data[MutationInputProperties::TITLE];
+        }
+        if (isset($form_data[MutationInputProperties::STATUS])) {
+            $post_data['custom-post-status'] = $form_data[MutationInputProperties::STATUS];
+        }
     }
 
     protected function getUpdateCustomPostData($form_data)
     {
         $post_data = array(
             'id' => $form_data[MutationInputProperties::ID],
-            'post-content' => $form_data[MutationInputProperties::CONTENT],
         );
-
-        if ($this->supportsTitle()) {
-            $post_data['custompost-title'] = $form_data[MutationInputProperties::TITLE];
-        }
-
-        $this->addCustomPostType($post_data);
-
-        // Status: If provided, Validate the value is permitted, or get the default value otherwise
-        if ($form_data[MutationInputProperties::STATUS]) {
-            if ($status = \GD_CreateUpdate_Utils::getUpdatepostStatus($form_data[MutationInputProperties::STATUS], $this->moderate())) {
-                $post_data['custom-post-status'] = $status;
-            }
-        }
+        $this->addCreateUpdateCustomPostData($post_data, $form_data);
 
         return $post_data;
     }
 
-    protected function moderate()
-    {
-        return \GD_CreateUpdate_Utils::moderate();
-    }
-
     protected function getCreateCustomPostData($form_data)
     {
-        // Status: Validate the value is permitted, or get the default value otherwise
-        $status = \GD_CreateUpdate_Utils::getCreatepostStatus($form_data[MutationInputProperties::STATUS], $this->moderate());
-        $post_data = array(
-            'post-content' => $form_data[MutationInputProperties::CONTENT],
-            'custom-post-status' => $status,
-        );
+        $post_data = [
+            'custom-post-type' => $this->getCustomPostType(),
+        ];
+        $this->addCreateUpdateCustomPostData($post_data, $form_data);
 
-        if ($this->supportsTitle()) {
-            $post_data['custompost-title'] = $form_data[MutationInputProperties::TITLE];
-        }
-
-        $this->addCustomPostType($post_data);
+        // $this->addCustomPostType($post_data);
 
         return $post_data;
     }
@@ -285,21 +151,21 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $customPostTypeAPI->updateCustomPost($data);
     }
 
+    protected function getCategories(array $form_data): ?array
+    {
+        return $form_data[MutationInputProperties::CATEGORIES];
+    }
+
     protected function createUpdateCustomPost($form_data, $post_id)
     {
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
         $taxonomy = $this->getCategoryTaxonomy();
-        if ($cats = $form_data[MutationInputProperties::CATEGORIES]) {
-            $cats = $this->maybeAddParentCategories($cats);
+        if ($cats = $this->getCategories($form_data)) {
             $taxonomyapi->setPostTerms($post_id, $cats, $taxonomy);
         }
 
         $this->setfeaturedimage($post_id, $form_data);
-
-        if (isset($form_data[MutationInputProperties::REFERENCES])) {
-            \PoPSchema\CustomPostMeta\Utils::updateCustomPostMeta($post_id, GD_METAKEY_POST_REFERENCES, $form_data[MutationInputProperties::REFERENCES]);
-        }
     }
 
     protected function getUpdateCustomPostDataLog($post_id, $form_data)
@@ -308,11 +174,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $log = array(
             'previous-status' => $customPostTypeAPI->getStatus($post_id),
         );
-
-        if (isset($form_data[MutationInputProperties::REFERENCES])) {
-            $previous_references = \PoPSchema\CustomPostMeta\Utils::getCustomPostMeta($post_id, GD_METAKEY_POST_REFERENCES);
-            $log['new-references'] = array_diff($form_data[MutationInputProperties::REFERENCES], $previous_references);
-        }
 
         return $log;
     }

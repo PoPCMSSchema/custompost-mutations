@@ -12,8 +12,4 @@ class MutationInputProperties
     public const STATUS = 'status';
     public const CATEGORIES = 'categories';
     public const FEATUREDIMAGE = 'featuredimage';
-    public const REFERENCES = 'references';
-    public const TOPICS = 'topics';
-    public const VOLUNTEERSNEEDED = 'volunteersneeded';
-    public const APPLIESTO = 'appliesto';
 }
