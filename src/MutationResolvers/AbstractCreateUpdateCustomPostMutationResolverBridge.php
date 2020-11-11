@@ -21,7 +21,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
     {
         parent::modifyDataProperties($data_properties, $result_id);
 
-        $data_properties[DataloadingConstants::QUERYARGS]['custom-post-status'] = [
+        $data_properties[DataloadingConstants::QUERYARGS]['status'] = [
             Status::PUBLISHED,
             Status::PENDING,
             Status::DRAFT,

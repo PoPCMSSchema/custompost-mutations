@@ -103,19 +103,19 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
     // protected function addCustomPostType(&$post_data)
     // {
-    //     $post_data['custom-post-type'] = $this->getCustomPostType();
+    //     $post_data['custompost-type'] = $this->getCustomPostType();
     // }
 
     protected function addCreateUpdateCustomPostData(array &$post_data, array $form_data)
     {
         if (isset($form_data[MutationInputProperties::CONTENT])) {
-            $post_data['post-content'] = $form_data[MutationInputProperties::CONTENT];
+            $post_data['content'] = $form_data[MutationInputProperties::CONTENT];
         }
         if (isset($form_data[MutationInputProperties::TITLE])) {
-            $post_data['custompost-title'] = $form_data[MutationInputProperties::TITLE];
+            $post_data['title'] = $form_data[MutationInputProperties::TITLE];
         }
         if (isset($form_data[MutationInputProperties::STATUS])) {
-            $post_data['custom-post-status'] = $form_data[MutationInputProperties::STATUS];
+            $post_data['status'] = $form_data[MutationInputProperties::STATUS];
         }
     }
 
@@ -132,7 +132,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     protected function getCreateCustomPostData($form_data)
     {
         $post_data = [
-            'custom-post-type' => $this->getCustomPostType(),
+            'custompost-type' => $this->getCustomPostType(),
         ];
         $this->addCreateUpdateCustomPostData($post_data, $form_data);
 
