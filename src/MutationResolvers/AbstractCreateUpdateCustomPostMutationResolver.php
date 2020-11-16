@@ -215,7 +215,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         // Inject Share profiles here
         HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
-        HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:update', $post_id, $log, $form_data);
+        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_UPDATE, $post_id, $log, $form_data);
         return $post_id;
     }
 
@@ -249,7 +249,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         // Inject Share profiles here
         HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
-        HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:create', $post_id, $form_data);
+        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE, $post_id, $form_data);
 
         return $post_id;
     }
