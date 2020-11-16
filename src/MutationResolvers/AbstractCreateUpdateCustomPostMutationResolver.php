@@ -15,6 +15,10 @@ use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCus
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
+    public const HOOK_EXECUTE_CREATE_OR_UPDATE = __CLASS__ . ':execute-create-or-update';
+    public const HOOK_EXECUTE_CREATE = __CLASS__ . ':execute-create';
+    public const HOOK_EXECUTE_UPDATE = __CLASS__ . ':execute-update';
+
     protected function getCategoryTaxonomy(): ?string
     {
         return null;
@@ -210,7 +214,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $this->updateadditionals($post_id, $form_data, $log);
 
         // Inject Share profiles here
-        HooksAPIFacade::getInstance()->doAction('gd_createupdate_post', $post_id, $form_data);
+        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
         HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:update', $post_id, $log, $form_data);
         return $post_id;
     }
@@ -244,7 +248,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $this->createadditionals($post_id, $form_data);
 
         // Inject Share profiles here
-        HooksAPIFacade::getInstance()->doAction('gd_createupdate_post', $post_id, $form_data);
+        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
         HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:create', $post_id, $form_data);
 
         return $post_id;
