@@ -38,14 +38,16 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
         return $_REQUEST[POP_INPUTNAME_POSTID];
     }
 
+    abstract protected function isUpdate(): bool;
+
     public function getFormData(): array
     {
         $moduleprocessor_manager = ModuleProcessorManagerFacade::getInstance();
 
-        $form_data = array(
-            // The ID is set always, but will be used only for update
-            MutationInputProperties::ID => $this->getUpdateCustomPostID(),
-        );
+        $form_data = [];
+        if ($this->isUpdate()) {
+            $form_data[MutationInputProperties::ID] = $this->getUpdateCustomPostID();
+        }
 
         if ($this->useTitle()) {
             $form_data[MutationInputProperties::TITLE] = trim(strip_tags($moduleprocessor_manager->getProcessor([\PoP_Module_Processor_CreateUpdatePostTextFormInputs::class, \PoP_Module_Processor_CreateUpdatePostTextFormInputs::MODULE_FORMINPUT_CUP_TITLE])->getValue([\PoP_Module_Processor_CreateUpdatePostTextFormInputs::class, \PoP_Module_Processor_CreateUpdatePostTextFormInputs::MODULE_FORMINPUT_CUP_TITLE])));

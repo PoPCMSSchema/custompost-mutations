@@ -30,18 +30,17 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $errors = [];
         // If there's post_id => It's Update
         // Otherwise => It's Create
-        $post_id = $this->getUpdateCustomPostID();
-
-        if ($post_id) {
+        $customPostID = $form_data[MutationInputProperties::ID];
+        if ($customPostID) {
             // If already exists any of these errors above, return errors
-            $this->validateUpdate($errors);
+            $this->validateUpdate($errors, $form_data);
             if ($errors) {
                 return $errors;
             }
             $this->validateUpdateContent($errors, $form_data);
         } else {
             // If already exists any of these errors above, return errors
-            $this->validateCreate($errors);
+            $this->validateCreate($errors, $form_data);
             if ($errors) {
                 return $errors;
             }
@@ -69,7 +68,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     {
     }
 
-    protected function validateCreate(array &$errors): void
+    protected function validateCreate(array &$errors, array $form_data): void
     {
         // Validate user permission
         $cmsuserrolesapi = \PoPSchema\UserRoles\FunctionAPIFactory::getInstance();
@@ -78,34 +77,24 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         }
     }
 
-    /**
-     * The ID comes directly as a parameter in the request, it's not a form field
-     *
-     * @return mixed
-     */
-    protected function getUpdateCustomPostID()
+    protected function validateUpdate(array &$errors, array $form_data): void
     {
-        return $_REQUEST[POP_INPUTNAME_POSTID];
-    }
-
-    protected function validateUpdate(array &$errors): void
-    {
-        $post_id = $this->getUpdateCustomPostID();
+        $customPostID = $form_data[MutationInputProperties::ID];
 
         // Validate there is postid
-        if (!$post_id) {
+        if (!$customPostID) {
             $errors[] = TranslationAPIFacade::getInstance()->__('Cheating, huh?', 'pop-application');
             return;
         }
 
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
-        $post = $customPostTypeAPI->getCustomPost($post_id);
+        $post = $customPostTypeAPI->getCustomPost($customPostID);
         if (!$post) {
             $errors[] = TranslationAPIFacade::getInstance()->__('Cheating, huh?', 'pop-application');
             return;
         }
 
-        $status = $customPostTypeAPI->getStatus($post_id);
+        $status = $customPostTypeAPI->getStatus($customPostID);
         $instanceManager = InstanceManagerFacade::getInstance();
         /**
          * @var CustomPostStatusEnum
@@ -120,21 +109,21 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
 
     /**
-     * @param mixed $post_id
+     * @param mixed $customPostID
      */
-    protected function additionals($post_id, array $form_data): void
+    protected function additionals($customPostID, array $form_data): void
     {
     }
     /**
-     * @param mixed $post_id
+     * @param mixed $customPostID
      */
-    protected function updateAdditionals($post_id, array $form_data, array $log): void
+    protected function updateAdditionals($customPostID, array $form_data, array $log): void
     {
     }
     /**
-     * @param mixed $post_id
+     * @param mixed $customPostID
      */
-    protected function createAdditionals($post_id, array $form_data): void
+    protected function createAdditionals($customPostID, array $form_data): void
     {
     }
 
@@ -194,26 +183,26 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
 
     /**
-     * @param mixed $post_id
+     * @param mixed $customPostID
      */
-    protected function createUpdateCustomPost(array $form_data, $post_id): void
+    protected function createUpdateCustomPost(array $form_data, $customPostID): void
     {
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
         $taxonomy = $this->getCategoryTaxonomy();
         if ($cats = $this->getCategories($form_data)) {
-            $taxonomyapi->setPostTerms($post_id, $cats, $taxonomy);
+            $taxonomyapi->setPostTerms($customPostID, $cats, $taxonomy);
         }
     }
 
     /**
-     * @param mixed $post_id
+     * @param mixed $customPostID
      */
-    protected function getUpdateCustomPostDataLog($post_id, array $form_data): array
+    protected function getUpdateCustomPostDataLog($customPostID, array $form_data): array
     {
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
         $log = array(
-            'previous-status' => $customPostTypeAPI->getStatus($post_id),
+            'previous-status' => $customPostTypeAPI->getStatus($customPostID),
         );
 
         return $log;
@@ -225,12 +214,12 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     protected function update(array $form_data)
     {
         $post_data = $this->getUpdateCustomPostData($form_data);
-        $post_id = $post_data['id'];
+        $customPostID = $post_data['id'];
 
         // Create the operation log, to see what changed. Needed for
         // - Send email only when post published
         // - Add user notification of post being referenced, only when the reference is new (otherwise it will add the notification each time the user updates the post)
-        $log = $this->getUpdateCustomPostDataLog($post_id, $form_data);
+        $log = $this->getUpdateCustomPostDataLog($customPostID, $form_data);
 
         $result = $this->executeUpdateCustomPost($post_data);
 
@@ -241,17 +230,17 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
             );
         }
 
-        $this->createUpdateCustomPost($form_data, $post_id);
+        $this->createUpdateCustomPost($form_data, $customPostID);
 
         // Allow for additional operations (eg: set Action categories)
-        $this->additionals($post_id, $form_data);
-        $this->updateAdditionals($post_id, $form_data, $log);
+        $this->additionals($customPostID, $form_data);
+        $this->updateAdditionals($customPostID, $form_data, $log);
 
         // Inject Share profiles here
         $hooksAPI = HooksAPIFacade::getInstance();
-        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
-        $hooksAPI->doAction(self::HOOK_EXECUTE_UPDATE, $post_id, $log, $form_data);
-        return $post_id;
+        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $customPostID, $form_data);
+        $hooksAPI->doAction(self::HOOK_EXECUTE_UPDATE, $customPostID, $log, $form_data);
+        return $customPostID;
     }
 
     /**
@@ -270,26 +259,26 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     protected function create(array $form_data)
     {
         $post_data = $this->getCreateCustomPostData($form_data);
-        $post_id = $this->executeCreateCustomPost($post_data);
+        $customPostID = $this->executeCreateCustomPost($post_data);
 
-        if ($post_id == 0) {
+        if ($customPostID == 0) {
             return new Error(
                 'create-error',
                 TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
             );
         }
 
-        $this->createUpdateCustomPost($form_data, $post_id);
+        $this->createUpdateCustomPost($form_data, $customPostID);
 
         // Allow for additional operations (eg: set Action categories)
-        $this->additionals($post_id, $form_data);
-        $this->createAdditionals($post_id, $form_data);
+        $this->additionals($customPostID, $form_data);
+        $this->createAdditionals($customPostID, $form_data);
 
         // Inject Share profiles here
         $hooksAPI = HooksAPIFacade::getInstance();
-        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
-        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE, $post_id, $form_data);
+        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $customPostID, $form_data);
+        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE, $customPostID, $form_data);
 
-        return $post_id;
+        return $customPostID;
     }
 }
