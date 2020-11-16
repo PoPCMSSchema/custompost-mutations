@@ -71,27 +71,29 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
     protected function validateCreate(array &$errors, array $form_data): void
     {
+        $translationAPI = TranslationAPIFacade::getInstance();
+
         // Validate user permission
         $cmsuserrolesapi = \PoPSchema\UserRoles\FunctionAPIFactory::getInstance();
         if (!$cmsuserrolesapi->currentUserCan(NameResolverFacade::getInstance()->getName('popcms:capability:editPosts'))) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('Your user doesn\'t have permission for editing.', 'pop-application');
+            $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'pop-application');
         }
     }
 
     protected function validateUpdate(array &$errors, array $form_data): void
     {
-        $customPostID = $form_data[MutationInputProperties::ID];
+        $translationAPI = TranslationAPIFacade::getInstance();
 
-        // Validate there is postid
+        $customPostID = $form_data[MutationInputProperties::ID];
         if (!$customPostID) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('Cheating, huh?', 'pop-application');
+            $errors[] = $translationAPI->__('Cheating, huh?', 'pop-application');
             return;
         }
 
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
         $post = $customPostTypeAPI->getCustomPost($customPostID);
         if (!$post) {
-            $errors[] = TranslationAPIFacade::getInstance()->__('Cheating, huh?', 'pop-application');
+            $errors[] = $translationAPI->__('Cheating, huh?', 'pop-application');
             return;
         }
 
@@ -103,7 +105,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
         if (!in_array($status, $customPostStatusEnum->getValues())) {
             $errors[] = sprintf(
-                TranslationAPIFacade::getInstance()->__('Status \'%s\' is not supported', 'pop-application'),
+                $translationAPI->__('Status \'%s\' is not supported', 'pop-application'),
                 $status
             );
         }
@@ -214,6 +216,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
      */
     protected function update(array $form_data)
     {
+        $translationAPI = TranslationAPIFacade::getInstance();
         $post_data = $this->getUpdateCustomPostData($form_data);
         $customPostID = $post_data['id'];
 
@@ -227,7 +230,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         if ($result === 0) {
             return new Error(
                 'update-error',
-                TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
+                $translationAPI->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
             );
         }
 
@@ -259,13 +262,14 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
      */
     protected function create(array $form_data)
     {
+        $translationAPI = TranslationAPIFacade::getInstance();
         $post_data = $this->getCreateCustomPostData($form_data);
         $customPostID = $this->executeCreateCustomPost($post_data);
 
         if ($customPostID == 0) {
             return new Error(
                 'create-error',
-                TranslationAPIFacade::getInstance()->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
+                $translationAPI->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
             );
         }
 
