@@ -12,6 +12,8 @@ use PoP\ComponentModel\MutationResolvers\AbstractCRUDComponentMutationResolverBr
 
 abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends AbstractCRUDComponentMutationResolverBridge
 {
+    public const HOOK_FORM_DATA_CREATE_OR_UPDATE = __CLASS__ . ':form-data-create-or-update';
+
     /**
      * @param mixed $result_id Maybe an int, maybe a string
      */
@@ -65,7 +67,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
 
         // Allow plugins to add their own fields
         return HooksAPIFacade::getInstance()->applyFilters(
-            'GD_CreateUpdate_Post:form-data',
+            self::HOOK_FORM_DATA_CREATE_OR_UPDATE,
             $form_data
         );
     }
