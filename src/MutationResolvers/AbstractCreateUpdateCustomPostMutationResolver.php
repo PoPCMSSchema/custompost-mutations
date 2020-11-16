@@ -18,6 +18,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     public const HOOK_EXECUTE_CREATE_OR_UPDATE = __CLASS__ . ':execute-create-or-update';
     public const HOOK_EXECUTE_CREATE = __CLASS__ . ':execute-create';
     public const HOOK_EXECUTE_UPDATE = __CLASS__ . ':execute-update';
+    public const HOOK_VALIDATE_CONTENT = __CLASS__ . ':validate-content';
 
     protected function getCategoryTaxonomy(): ?string
     {
@@ -29,7 +30,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         // Allow plugins to add validation for their fields
         $hooksAPI = HooksAPIFacade::getInstance();
         $hooksAPI->doAction(
-            'GD_CreateUpdate_Post:validateContent',
+            self::HOOK_VALIDATE_CONTENT,
             array(&$errors),
             $form_data
         );
