@@ -27,7 +27,8 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     protected function validateContent(array &$errors, array $form_data): void
     {
         // Allow plugins to add validation for their fields
-        HooksAPIFacade::getInstance()->doAction(
+        $hooksAPI = HooksAPIFacade::getInstance();
+        $hooksAPI->doAction(
             'GD_CreateUpdate_Post:validateContent',
             array(&$errors),
             $form_data
@@ -220,8 +221,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $this->updateAdditionals($post_id, $form_data, $log);
 
         // Inject Share profiles here
-        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
-        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_UPDATE, $post_id, $log, $form_data);
+        $hooksAPI = HooksAPIFacade::getInstance();
+        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
+        $hooksAPI->doAction(self::HOOK_EXECUTE_UPDATE, $post_id, $log, $form_data);
         return $post_id;
     }
 
@@ -257,8 +259,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $this->createAdditionals($post_id, $form_data);
 
         // Inject Share profiles here
-        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
-        HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE, $post_id, $form_data);
+        $hooksAPI = HooksAPIFacade::getInstance();
+        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
+        $hooksAPI->doAction(self::HOOK_EXECUTE_CREATE, $post_id, $form_data);
 
         return $post_id;
     }
