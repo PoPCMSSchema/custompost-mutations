@@ -86,14 +86,17 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         $customPostID = $form_data[MutationInputProperties::ID];
         if (!$customPostID) {
-            $errors[] = $translationAPI->__('Cheating, huh?', 'pop-application');
+            $errors[] = $translationAPI->__('The ID is missing', 'pop-application');
             return;
         }
 
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
         $post = $customPostTypeAPI->getCustomPost($customPostID);
         if (!$post) {
-            $errors[] = $translationAPI->__('Cheating, huh?', 'pop-application');
+            $errors[] = sprintf(
+                $translationAPI->__('There is no entity with ID \'%s\'', 'pop-application'),
+                $customPostID
+            );
             return;
         }
 
