@@ -24,26 +24,24 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return null;
     }
 
-    // Update Post Validation
-    protected function validatecontent(&$errors, $form_data)
+    protected function validateContent(array &$errors, array $form_data): void
     {
         // Allow plugins to add validation for their fields
         HooksAPIFacade::getInstance()->doAction(
-            'GD_CreateUpdate_Post:validatecontent',
+            'GD_CreateUpdate_Post:validateContent',
             array(&$errors),
             $form_data
         );
     }
 
-    protected function validatecreatecontent(&$errors, $form_data)
+    protected function validateCreateContent(array &$errors, array $form_data): void
     {
     }
-    protected function validateupdatecontent(&$errors, $form_data)
+    protected function validateUpdateContent(array &$errors, array $form_data): void
     {
     }
 
-    // Update Post Validation
-    protected function validatecreate(&$errors)
+    protected function validateCreate(array &$errors): void
     {
         // Validate user permission
         $cmsuserrolesapi = \PoPSchema\UserRoles\FunctionAPIFactory::getInstance();
@@ -62,8 +60,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $_REQUEST[POP_INPUTNAME_POSTID];
     }
 
-    // Update Post Validation
-    protected function validateupdate(&$errors)
+    protected function validateUpdate(array &$errors): void
     {
         $post_id = $this->getUpdateCustomPostID();
 
@@ -95,21 +92,21 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
 
     /**
-     * Function to override
+     * @param mixed $post_id
      */
-    protected function additionals($post_id, $form_data)
+    protected function additionals($post_id, array $form_data): void
     {
     }
     /**
-     * Function to override
+     * @param mixed $post_id
      */
-    protected function updateadditionals($post_id, $form_data, $log)
+    protected function updateAdditionals($post_id, array $form_data, array $log): void
     {
     }
     /**
-     * Function to override
+     * @param mixed $post_id
      */
-    protected function createadditionals($post_id, $form_data)
+    protected function createAdditionals($post_id, array $form_data): void
     {
     }
 
@@ -118,7 +115,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     //     $post_data['custompost-type'] = $this->getCustomPostType();
     // }
 
-    protected function addCreateUpdateCustomPostData(array &$post_data, array $form_data)
+    protected function addCreateUpdateCustomPostData(array &$post_data, array $form_data): void
     {
         if (isset($form_data[MutationInputProperties::CONTENT])) {
             $post_data['content'] = $form_data[MutationInputProperties::CONTENT];
@@ -131,7 +128,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         }
     }
 
-    protected function getUpdateCustomPostData($form_data)
+    protected function getUpdateCustomPostData(array $form_data): array
     {
         $post_data = array(
             'id' => $form_data[MutationInputProperties::ID],
@@ -141,7 +138,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $post_data;
     }
 
-    protected function getCreateCustomPostData($form_data)
+    protected function getCreateCustomPostData(array $form_data): array
     {
         $post_data = [
             'custompost-type' => $this->getCustomPostType(),
@@ -168,7 +165,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $form_data[MutationInputProperties::CATEGORIES];
     }
 
-    protected function createUpdateCustomPost($form_data, $post_id)
+    /**
+     * @param mixed $post_id
+     */
+    protected function createUpdateCustomPost(array $form_data, $post_id): void
     {
         // Set category taxonomy for taxonomies other than "category"
         $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
@@ -178,7 +178,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         }
     }
 
-    protected function getUpdateCustomPostDataLog($post_id, $form_data)
+    /**
+     * @param mixed $post_id
+     */
+    protected function getUpdateCustomPostDataLog($post_id, array $form_data): array
     {
         $customPostTypeAPI = CustomPostTypeAPIFacade::getInstance();
         $log = array(
@@ -188,6 +191,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $log;
     }
 
+    /**
+     * @return mixed The ID of the updated entity, or an Error
+     */
     protected function update(array $form_data)
     {
         $post_data = $this->getUpdateCustomPostData($form_data);
@@ -211,7 +217,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         // Allow for additional operations (eg: set Action categories)
         $this->additionals($post_id, $form_data);
-        $this->updateadditionals($post_id, $form_data, $log);
+        $this->updateAdditionals($post_id, $form_data, $log);
 
         // Inject Share profiles here
         HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
@@ -229,6 +235,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $customPostTypeAPI->createCustomPost($data);
     }
 
+    /**
+     * @return mixed The ID of the created entity, or an Error
+     */
     protected function create(array $form_data)
     {
         $post_data = $this->getCreateCustomPostData($form_data);
@@ -245,7 +254,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         // Allow for additional operations (eg: set Action categories)
         $this->additionals($post_id, $form_data);
-        $this->createadditionals($post_id, $form_data);
+        $this->createAdditionals($post_id, $form_data);
 
         // Inject Share profiles here
         HooksAPIFacade::getInstance()->doAction(self::HOOK_EXECUTE_CREATE_OR_UPDATE, $post_id, $form_data);
