@@ -6,7 +6,6 @@ namespace PoPSchema\CustomPostMutations\MutationResolvers;
 
 use PoP\ComponentModel\Error;
 use PoP\Hooks\Facades\HooksAPIFacade;
-use PoPSchema\CustomPosts\Types\Status;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
@@ -173,8 +172,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         if ($cats = $this->getCategories($form_data)) {
             $taxonomyapi->setPostTerms($post_id, $cats, $taxonomy);
         }
-
-        $this->setfeaturedimage($post_id, $form_data);
     }
 
     protected function getUpdateCustomPostDataLog($post_id, $form_data)
@@ -251,19 +248,5 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         HooksAPIFacade::getInstance()->doAction('gd_createupdate_post:create', $post_id, $form_data);
 
         return $post_id;
-    }
-
-    protected function setfeaturedimage($post_id, $form_data)
-    {
-        if (isset($form_data[MutationInputProperties::FEATUREDIMAGE])) {
-            $featuredimage = $form_data[MutationInputProperties::FEATUREDIMAGE];
-
-            // Featured Image
-            if ($featuredimage) {
-                \set_post_thumbnail($post_id, $featuredimage);
-            } else {
-                \delete_post_thumbnail($post_id);
-            }
-        }
     }
 }

@@ -6,8 +6,6 @@ namespace PoPSchema\CustomPostMutations\MutationResolvers;
 
 use PoP\Hooks\Facades\HooksAPIFacade;
 use PoPSchema\CustomPosts\Types\Status;
-use PoP\Translation\Facades\TranslationAPIFacade;
-use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
 use PoP\ComponentModel\ModuleProcessors\DataloadingConstants;
 use PoP\ComponentModel\Facades\ModuleProcessors\ModuleProcessorManagerFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractCRUDComponentMutationResolverBridge;
@@ -63,10 +61,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
 
         if ($this->showCategories()) {
             $form_data[MutationInputProperties::CATEGORIES] = $this->getCategories();
-        }
-
-        if ($featuredimage = $this->getFeaturedimageModule()) {
-            $form_data[MutationInputProperties::FEATUREDIMAGE] = $moduleprocessor_manager->getProcessor($featuredimage)->getValue($featuredimage);
         }
 
         // Allow plugins to add their own fields
@@ -141,11 +135,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
         }
 
         return null;
-    }
-
-    protected function getFeaturedimageModule()
-    {
-        return [\PoP_Module_Processor_FeaturedImageFormComponents::class, \PoP_Module_Processor_FeaturedImageFormComponents::MODULE_FORMCOMPONENT_FEATUREDIMAGE];
     }
 }
 

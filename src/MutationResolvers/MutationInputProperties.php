@@ -11,5 +11,4 @@ class MutationInputProperties
     public const CONTENT = 'content';
     public const STATUS = 'status';
     public const CATEGORIES = 'categories';
-    public const FEATUREDIMAGE = 'featuredimage';
 }
