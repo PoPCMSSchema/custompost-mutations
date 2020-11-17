@@ -10,5 +10,6 @@ class MutationInputProperties
     public const TITLE = 'title';
     public const CONTENT = 'content';
     public const STATUS = 'status';
-    public const CATEGORIES = 'categories';
+    // @TODO: Migrate when package "Categories" is completed
+    // public const CATEGORIES = 'categories';
 }

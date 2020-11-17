@@ -21,10 +21,11 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     public const HOOK_EXECUTE_UPDATE = __CLASS__ . ':execute-update';
     public const HOOK_VALIDATE_CONTENT = __CLASS__ . ':validate-content';
 
-    protected function getCategoryTaxonomy(): ?string
-    {
-        return null;
-    }
+    // @TODO: Migrate when package "Categories" is completed
+    // protected function getCategoryTaxonomy(): ?string
+    // {
+    //     return null;
+    // }
 
     public function validateErrors(array $form_data): ?array
     {
@@ -183,22 +184,24 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $customPostTypeAPI->updateCustomPost($data);
     }
 
-    protected function getCategories(array $form_data): ?array
-    {
-        return $form_data[MutationInputProperties::CATEGORIES];
-    }
+    // @TODO: Migrate when package "Categories" is completed
+    // protected function getCategories(array $form_data): ?array
+    // {
+    //     return $form_data[MutationInputProperties::CATEGORIES];
+    // }
 
     /**
      * @param mixed $customPostID
      */
     protected function createUpdateCustomPost(array $form_data, $customPostID): void
     {
-        // Set categories for any taxonomy (not only for "category")
-        if ($cats = $this->getCategories($form_data)) {
-            $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
-            $taxonomy = $this->getCategoryTaxonomy();
-            $taxonomyapi->setPostTerms($customPostID, $cats, $taxonomy);
-        }
+        // @TODO: Migrate when package "Categories" is completed
+        // // Set categories for any taxonomy (not only for "category")
+        // if ($cats = $this->getCategories($form_data)) {
+        //     $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
+        //     $taxonomy = $this->getCategoryTaxonomy();
+        //     $taxonomyapi->setPostTerms($customPostID, $cats, $taxonomy);
+        // }
     }
 
     /**

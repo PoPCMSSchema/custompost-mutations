@@ -63,9 +63,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
             $form_data[MutationInputProperties::STATUS] = $moduleprocessor_manager->getProcessor([\PoP_Module_Processor_CreateUpdatePostSelectFormInputs::class, \PoP_Module_Processor_CreateUpdatePostSelectFormInputs::MODULE_FORMINPUT_CUP_STATUS])->getValue([\PoP_Module_Processor_CreateUpdatePostSelectFormInputs::class, \PoP_Module_Processor_CreateUpdatePostSelectFormInputs::MODULE_FORMINPUT_CUP_STATUS]);
         }
 
-        if ($this->showCategories()) {
-            $form_data[MutationInputProperties::CATEGORIES] = $this->getCategories();
-        }
+        // @TODO: Migrate when package "Categories" is completed
+        // if ($this->showCategories()) {
+        //     $form_data[MutationInputProperties::CATEGORIES] = $this->getCategories();
+        // }
 
         // Allow plugins to add their own fields
         return HooksAPIFacade::getInstance()->applyFilters(
@@ -77,26 +78,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
     protected function getEditorInput()
     {
         return [\PoP_Module_Processor_EditorFormInputs::class, \PoP_Module_Processor_EditorFormInputs::MODULE_FORMINPUT_EDITOR];
-    }
-
-    protected function getCategories()
-    {
-        if ($this->showCategories()) {
-            if ($categories_module = $this->getCategoriesModule()) {
-                $moduleprocessor_manager = ModuleProcessorManagerFacade::getInstance();
-
-                // We might decide to allow the user to input many sections, or only one section, so this value might be an array or just the value
-                // So treat it always as an array
-                $categories = $moduleprocessor_manager->getProcessor($categories_module)->getValue($categories_module);
-                if ($categories && !is_array($categories)) {
-                    $categories = array($categories);
-                }
-
-                return $categories;
-            }
-        }
-
-        return array();
     }
 
     protected function useTitle(): bool
@@ -114,31 +95,55 @@ abstract class AbstractCreateUpdateCustomPostMutationResolverBridge extends Abst
         return true;
     }
 
-    protected function showCategories()
-    {
-        return false;
-    }
+    // @TODO: Migrate when package "Categories" is completed
+    // protected function getCategories()
+    // {
+    //     if ($this->showCategories()) {
+    //         if ($categories_module = $this->getCategoriesModule()) {
+    //             $moduleprocessor_manager = ModuleProcessorManagerFacade::getInstance();
 
-    protected function canInputMultipleCategories()
-    {
-        return false;
-        // return HooksAPIFacade::getInstance()->applyFilters(
-        //     'GD_CreateUpdate_Post:multiple-categories',
-        //     true
-        // );
-    }
+    //             // We might decide to allow the user to input many sections, or only one section, so this value might be an array or just the value
+    //             // So treat it always as an array
+    //             $categories = $moduleprocessor_manager->getProcessor($categories_module)->getValue($categories_module);
+    //             if ($categories && !is_array($categories)) {
+    //                 $categories = array($categories);
+    //             }
 
-    protected function getCategoriesModule()
-    {
-        if ($this->showCategories()) {
-            if ($this->canInputMultipleCategories()) {
-                return [\PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::class, \PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::MODULE_FORMINPUT_BUTTONGROUP_POSTSECTIONS];
-            }
+    //             return $categories;
+    //         }
+    //     }
 
-            return [\PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::class, \PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::MODULE_FORMINPUT_BUTTONGROUP_POSTSECTION];
-        }
+    //     return array();
+    // }
 
-        return null;
-    }
+    // @TODO: Migrate when package "Categories" is completed
+    // protected function showCategories()
+    // {
+    //     return false;
+    // }
+
+    // @TODO: Migrate when package "Categories" is completed
+    // protected function canInputMultipleCategories()
+    // {
+    //     return false;
+    //     // return HooksAPIFacade::getInstance()->applyFilters(
+    //     //     'GD_CreateUpdate_Post:multiple-categories',
+    //     //     true
+    //     // );
+    // }
+
+    // @TODO: Migrate when package "Categories" is completed
+    // protected function getCategoriesModule()
+    // {
+    //     if ($this->showCategories()) {
+    //         if ($this->canInputMultipleCategories()) {
+    //             return [\PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::class, \PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::MODULE_FORMINPUT_BUTTONGROUP_POSTSECTIONS];
+    //         }
+
+    //         return [\PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::class, \PoP_Module_Processor_CreateUpdatePostButtonGroupFormInputs::MODULE_FORMINPUT_BUTTONGROUP_POSTSECTION];
+    //     }
+
+    //     return null;
+    // }
 }
 
