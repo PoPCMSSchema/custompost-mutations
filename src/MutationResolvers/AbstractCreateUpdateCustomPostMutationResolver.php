@@ -193,10 +193,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
      */
     protected function createUpdateCustomPost(array $form_data, $customPostID): void
     {
-        // Set category taxonomy for taxonomies other than "category"
-        $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
-        $taxonomy = $this->getCategoryTaxonomy();
+        // Set categories for any taxonomy (not only for "category")
         if ($cats = $this->getCategories($form_data)) {
+            $taxonomyapi = \PoPSchema\Taxonomies\FunctionAPIFactory::getInstance();
+            $taxonomy = $this->getCategoryTaxonomy();
             $taxonomyapi->setPostTerms($customPostID, $cats, $taxonomy);
         }
     }
