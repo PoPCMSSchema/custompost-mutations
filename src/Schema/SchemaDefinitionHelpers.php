@@ -7,7 +7,6 @@ namespace PoPSchema\CustomPostMutations\Schema;
 use PoP\Hooks\Facades\HooksAPIFacade;
 use PoP\ComponentModel\Schema\SchemaHelpers;
 use PoP\ComponentModel\Schema\SchemaDefinition;
-use PoP\ComponentModel\Schema\TypeCastingHelpers;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoPSchema\CustomPosts\Enums\CustomPostStatusEnum;
 use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
@@ -18,15 +17,15 @@ class SchemaDefinitionHelpers
 {
     public const HOOK_UPDATE_SCHEMA_FIELD_ARGS = __CLASS__ . ':update-schema-field-args';
 
-    private static array $createUpdateCustomPostSchemaFieldArgs = [];
+    private static array $schemaFieldArgsCache = [];
 
     public static function getCreateUpdateCustomPostSchemaFieldArgs(
         TypeResolverInterface $typeResolver,
         string $fieldName,
-        bool $addID
+        bool $addCustomPostID
     ): array {
         $key = get_class($typeResolver) . '-' . $fieldName;
-        if (is_null(self::$createUpdateCustomPostSchemaFieldArgs[$key])) {
+        if (is_null(self::$schemaFieldArgsCache[$key])) {
             $hooksAPI = HooksAPIFacade::getInstance();
             $translationAPI = TranslationAPIFacade::getInstance();
             $instanceManager = InstanceManagerFacade::getInstance();
@@ -35,11 +34,11 @@ class SchemaDefinitionHelpers
              */
             $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
             $schemaFieldDefinition = array_merge(
-                $addID ? [
+                $addCustomPostID ? [
                     [
                         SchemaDefinition::ARGNAME_NAME => MutationInputProperties::ID,
                         SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ID,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The ID of the post to update', 'post-mutations'),
+                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The ID of the custom post to update', 'custompost-mutations'),
                         SchemaDefinition::ARGNAME_MANDATORY => true,
                     ],
                 ] : [],
@@ -47,17 +46,17 @@ class SchemaDefinitionHelpers
                     [
                         SchemaDefinition::ARGNAME_NAME => MutationInputProperties::TITLE,
                         SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_STRING,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The title of the post', 'custompost-mutations'),
+                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The title of the custom post', 'custompost-mutations'),
                     ],
                     [
                         SchemaDefinition::ARGNAME_NAME => MutationInputProperties::CONTENT,
                         SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_STRING,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The content of the post', 'custompost-mutations'),
+                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The content of the custom post', 'custompost-mutations'),
                     ],
                     [
                         SchemaDefinition::ARGNAME_NAME => MutationInputProperties::STATUS,
                         SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ENUM,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The status of the post', 'custompost-mutations'),
+                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The status of the custom post', 'custompost-mutations'),
                         SchemaDefinition::ARGNAME_ENUM_NAME => $customPostStatusEnum->getName(),
                         SchemaDefinition::ARGNAME_ENUM_VALUES => SchemaHelpers::convertToSchemaFieldArgEnumValueDefinitions(
                             $customPostStatusEnum->getValues()
@@ -74,13 +73,13 @@ class SchemaDefinitionHelpers
                     // ]
                 ]
             );
-            self::$createUpdateCustomPostSchemaFieldArgs[$key] = $hooksAPI->applyFilters(
+            self::$schemaFieldArgsCache[$key] = $hooksAPI->applyFilters(
                 self::HOOK_UPDATE_SCHEMA_FIELD_ARGS,
                 $schemaFieldDefinition,
                 $typeResolver,
                 $fieldName
             );
         }
-        return self::$createUpdateCustomPostSchemaFieldArgs[$key];
+        return self::$schemaFieldArgsCache[$key];
     }
 }
