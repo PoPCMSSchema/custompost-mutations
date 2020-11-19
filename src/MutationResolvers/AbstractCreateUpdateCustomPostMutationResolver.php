@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PoPSchema\CustomPostMutations\MutationResolvers;
 
-use PoP\ComponentModel\Error;
+use PoP\ComponentModel\ErrorHandling\Error;
 use PoP\Hooks\Facades\HooksAPIFacade;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
