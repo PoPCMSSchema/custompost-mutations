@@ -93,7 +93,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
         $vars = ApplicationState::getVars();
         $userID = $vars['global-userstate']['current-user-id'];
-        $editPostsCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_POSTS_CAPABILITY);
+        $editPostsCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_CUSTOMPOSTS_CAPABILITY);
         if (!$userRoleTypeDataResolver->userCan(
             $userID,
             $editPostsCapability
@@ -104,7 +104,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         // Check if the user can publish custom posts
         if ($form_data[MutationInputProperties::STATUS] == Status::PUBLISHED) {
-            $publishCustomPostsCapability = $nameResolver->getName(LooseContractSet::NAME_PUBLISH_POSTS_CAPABILITY);
+            $publishCustomPostsCapability = $nameResolver->getName(LooseContractSet::NAME_PUBLISH_CUSTOMPOSTS_CAPABILITY);
             if (!$userRoleTypeDataResolver->userCan(
                 $userID,
                 $publishCustomPostsCapability
