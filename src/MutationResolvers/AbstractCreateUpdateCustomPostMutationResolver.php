@@ -92,10 +92,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
         $vars = ApplicationState::getVars();
         $userID = $vars['global-userstate']['current-user-id'];
-        $editPostCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_POSTS_CAPABILITY);
+        $editPostsCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_POSTS_CAPABILITY);
         if (!$userRoleTypeDataResolver->userCan(
             $userID,
-            $editPostCapability
+            $editPostsCapability
         )) {
             $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'custompost-mutations');
             return;
@@ -161,6 +161,18 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         if (!$post) {
             $errors[] = sprintf(
                 $translationAPI->__('There is no entity with ID \'%s\'', 'custompost-mutations'),
+                $customPostID
+            );
+            return;
+        }
+
+        // Check that the user has access to the edited custom post
+        $mutationCustomPostTypeAPI = MutationCustomPostTypeAPIFacade::getInstance();
+        $vars = ApplicationState::getVars();
+        $userID = $vars['global-userstate']['current-user-id'];
+        if (!$mutationCustomPostTypeAPI->canUserEditCustomPost($userID, $customPostID)) {
+            $errors[] = sprintf(
+                $translationAPI->__('You don\'t have permission to edit custom post with ID \'%s\'', 'custompost-mutations'),
                 $customPostID
             );
             return;
