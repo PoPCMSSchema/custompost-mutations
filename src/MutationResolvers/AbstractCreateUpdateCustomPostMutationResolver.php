@@ -16,6 +16,7 @@ use PoPSchema\UserRoles\Facades\UserRoleTypeDataResolverFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\UserStateMutations\MutationResolvers\ValidateUserLoggedInMutationResolverTrait;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
+use PoPSchema\CustomPostMutations\LooseContracts\LooseContractSet;
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
@@ -95,9 +96,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
         $vars = ApplicationState::getVars();
         $userID = $vars['global-userstate']['current-user-id'];
+        $editPostCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_POSTS_CAPABILITY);
         if (!$userRoleTypeDataResolver->userCan(
             $userID,
-            $nameResolver->getName('popcms:capability:editPosts')
+            $editPostCapability
         )) {
             $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'pop-application');
         }
