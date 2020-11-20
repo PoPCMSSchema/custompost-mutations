@@ -61,6 +61,12 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $errors;
     }
 
+    protected function getUserNotLoggedInErrorMessage(): string
+    {
+        $translationAPI = TranslationAPIFacade::getInstance();
+        return $translationAPI->__('You must be logged in to create or update custom posts', 'custompost-mutations');
+    }
+
     protected function validateContent(array &$errors, array $form_data): void
     {
         // Allow plugins to add validation for their fields
