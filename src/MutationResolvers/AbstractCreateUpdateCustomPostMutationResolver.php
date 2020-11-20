@@ -33,34 +33,73 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     //     return null;
     // }
 
-    public function validateErrors(array $form_data): ?array
+    protected function validateCreateErrors(array $form_data): ?array
     {
         $errors = [];
 
-        // Check that the user is logged-in
-        $this->validateUserIsLoggedIn($errors);
+        // If there are errors here, don't keep validating others
+        $this->validateCreateUpdateErrors($errors, $form_data);
         if ($errors) {
             return $errors;
         }
 
-        $customPostID = $form_data[MutationInputProperties::ID];
-        if ($customPostID) {
-            // If already exists any of these errors above, return errors
-            $this->validateUpdate($errors, $form_data);
-            if ($errors) {
-                return $errors;
-            }
-            $this->validateUpdateContent($errors, $form_data);
-        } else {
-            // If already exists any of these errors above, return errors
-            $this->validateCreate($errors, $form_data);
-            if ($errors) {
-                return $errors;
-            }
-            $this->validateCreateContent($errors, $form_data);
+        // If already exists any of these errors above, return errors
+        $this->validateCreate($errors, $form_data);
+        if ($errors) {
+            return $errors;
         }
+
         $this->validateContent($errors, $form_data);
+        $this->validateCreateContent($errors, $form_data);
+
         return $errors;
+    }
+
+    protected function validateUpdateErrors(array $form_data): ?array
+    {
+        $errors = [];
+
+        // If there are errors here, don't keep validating others
+        $this->validateCreateUpdateErrors($errors, $form_data);
+        if ($errors) {
+            return $errors;
+        }
+
+        // If already exists any of these errors above, return errors
+        $this->validateUpdate($errors, $form_data);
+        if ($errors) {
+            return $errors;
+        }
+
+        $this->validateContent($errors, $form_data);
+        $this->validateUpdateContent($errors, $form_data);
+
+        return $errors;
+    }
+
+    protected function validateCreateUpdateErrors(array &$errors, array $form_data): void
+    {
+        // Check that the user is logged-in
+        $this->validateUserIsLoggedIn($errors);
+        if ($errors) {
+            return;
+        }
+
+        $nameResolver = NameResolverFacade::getInstance();
+        $translationAPI = TranslationAPIFacade::getInstance();
+
+        // Validate user permission
+        $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
+        $vars = ApplicationState::getVars();
+        $userID = $vars['global-userstate']['current-user-id'];
+        $editPostCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_POSTS_CAPABILITY);
+        if (!$userRoleTypeDataResolver->userCan(
+            $userID,
+            $editPostCapability
+        )) {
+            $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'custompost-mutations');
+            return;
+        }
     }
 
     protected function getUserNotLoggedInErrorMessage(): string
@@ -71,6 +110,22 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
     protected function validateContent(array &$errors, array $form_data): void
     {
+        $translationAPI = TranslationAPIFacade::getInstance();
+        // Validate that the status is valid
+        $instanceManager = InstanceManagerFacade::getInstance();
+        /**
+         * @var CustomPostStatusEnum
+         */
+        $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
+        if ($status = $form_data[MutationInputProperties::STATUS]) {
+            if (!in_array($status, $customPostStatusEnum->getValues())) {
+                $errors[] = sprintf(
+                    $translationAPI->__('Status \'%s\' is not supported', 'custompost-mutations'),
+                    $status
+                );
+            }
+        }
+
         // Allow plugins to add validation for their fields
         $hooksAPI = HooksAPIFacade::getInstance();
         $hooksAPI->doAction(
@@ -89,20 +144,6 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
     protected function validateCreate(array &$errors, array $form_data): void
     {
-        $nameResolver = NameResolverFacade::getInstance();
-        $translationAPI = TranslationAPIFacade::getInstance();
-
-        // Validate user permission
-        $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
-        $vars = ApplicationState::getVars();
-        $userID = $vars['global-userstate']['current-user-id'];
-        $editPostCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_POSTS_CAPABILITY);
-        if (!$userRoleTypeDataResolver->userCan(
-            $userID,
-            $editPostCapability
-        )) {
-            $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'pop-application');
-        }
     }
 
     protected function validateUpdate(array &$errors, array $form_data): void
@@ -111,7 +152,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
         $customPostID = $form_data[MutationInputProperties::ID];
         if (!$customPostID) {
-            $errors[] = $translationAPI->__('The ID is missing', 'pop-application');
+            $errors[] = $translationAPI->__('The ID is missing', 'custompost-mutations');
             return;
         }
 
@@ -119,23 +160,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $post = $customPostTypeAPI->getCustomPost($customPostID);
         if (!$post) {
             $errors[] = sprintf(
-                $translationAPI->__('There is no entity with ID \'%s\'', 'pop-application'),
+                $translationAPI->__('There is no entity with ID \'%s\'', 'custompost-mutations'),
                 $customPostID
             );
             return;
-        }
-
-        $status = $customPostTypeAPI->getStatus($customPostID);
-        $instanceManager = InstanceManagerFacade::getInstance();
-        /**
-         * @var CustomPostStatusEnum
-         */
-        $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
-        if (!in_array($status, $customPostStatusEnum->getValues())) {
-            $errors[] = sprintf(
-                $translationAPI->__('Status \'%s\' is not supported', 'pop-application'),
-                $status
-            );
         }
     }
 
@@ -260,7 +288,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         if ($result === 0) {
             return new Error(
                 'update-error',
-                $translationAPI->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
+                $translationAPI->__('Oops, there was a problem... this is embarrassing, huh?', 'custompost-mutations')
             );
         }
 
@@ -299,7 +327,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         if ($customPostID == 0) {
             return new Error(
                 'create-error',
-                $translationAPI->__('Oops, there was a problem... this is embarrassing, huh?', 'pop-application')
+                $translationAPI->__('Oops, there was a problem... this is embarrassing, huh?', 'custompost-mutations')
             );
         }
 
