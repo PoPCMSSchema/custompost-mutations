@@ -11,6 +11,7 @@ use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Enums\CustomPostStatusEnum;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
 use PoP\ComponentModel\Facades\Instances\InstanceManagerFacade;
+use PoPSchema\UserRoles\Facades\UserRoleTypeDataResolverFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\UserStateMutations\MutationResolvers\ValidateUserLoggedInMutationResolverTrait;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
@@ -80,11 +81,17 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
 
     protected function validateCreate(array &$errors, array $form_data): void
     {
+        $nameResolver = NameResolverFacade::getInstance();
         $translationAPI = TranslationAPIFacade::getInstance();
 
         // Validate user permission
-        $cmsuserrolesapi = \PoPSchema\UserRoles\FunctionAPIFactory::getInstance();
-        if (!$cmsuserrolesapi->currentUserCan(NameResolverFacade::getInstance()->getName('popcms:capability:editPosts'))) {
+        $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
+        $vars = ApplicationState::getVars();
+        $userID = $vars['global-userstate']['current-user-id'];
+        if (!$userRoleTypeDataResolver->userCan(
+            $userID,
+            $nameResolver->getName('popcms:capability:editPosts')
+        )) {
             $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'pop-application');
         }
     }
