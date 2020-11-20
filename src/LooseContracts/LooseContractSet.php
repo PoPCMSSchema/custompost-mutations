@@ -8,7 +8,8 @@ use PoP\LooseContracts\AbstractLooseContractSet;
 
 class LooseContractSet extends AbstractLooseContractSet
 {
-    public const NAME_EDIT_POSTS_CAPABILITY = 'popcms:capability:editPosts';
+    public const NAME_EDIT_POSTS_CAPABILITY = 'popcms:capability:editCustomPosts';
+    public const NAME_PUBLISH_POSTS_CAPABILITY = 'popcms:capability:publishCustomPosts';
     /**
      * @return string[]
      */
@@ -16,6 +17,7 @@ class LooseContractSet extends AbstractLooseContractSet
     {
         return [
             self::NAME_EDIT_POSTS_CAPABILITY,
+            self::NAME_PUBLISH_POSTS_CAPABILITY,
         ];
     }
 }

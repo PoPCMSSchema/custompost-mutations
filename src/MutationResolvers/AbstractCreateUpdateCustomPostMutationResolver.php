@@ -17,6 +17,7 @@ use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\UserStateMutations\MutationResolvers\ValidateUserLoggedInMutationResolverTrait;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
 use PoPSchema\CustomPostMutations\LooseContracts\LooseContractSet;
+use PoPSchema\CustomPosts\Types\Status;
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
@@ -97,8 +98,20 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
             $userID,
             $editPostsCapability
         )) {
-            $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing.', 'custompost-mutations');
+            $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing custom posts.', 'custompost-mutations');
             return;
+        }
+
+        // Check if the user can publish custom posts
+        if ($form_data[MutationInputProperties::STATUS] == Status::PUBLISHED) {
+            $publishCustomPostsCapability = $nameResolver->getName(LooseContractSet::NAME_PUBLISH_POSTS_CAPABILITY);
+            if (!$userRoleTypeDataResolver->userCan(
+                $userID,
+                $publishCustomPostsCapability
+            )) {
+                $errors[] = $translationAPI->__('Your user doesn\'t have permission for publishing custom posts.', 'custompost-mutations');
+                return;
+            }
         }
     }
 
