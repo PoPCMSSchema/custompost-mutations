@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace PoPSchema\CustomPostMutations\MutationResolvers;
 
-use PoP\ComponentModel\ErrorHandling\Error;
 use PoP\Hooks\Facades\HooksAPIFacade;
+use PoP\ComponentModel\ErrorHandling\Error;
+use PoP\ComponentModel\State\ApplicationState;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Enums\CustomPostStatusEnum;
@@ -30,8 +31,14 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     public function validateErrors(array $form_data): ?array
     {
         $errors = [];
-        // If there's post_id => It's Update
-        // Otherwise => It's Create
+        $translationAPI = TranslationAPIFacade::getInstance();
+
+        // Check that the user is logged-in
+        $vars = ApplicationState::getVars();
+        if (!$vars['global-userstate']['is-user-logged-in']) {
+            $errors[] = $translationAPI->__('You must be logged in to edit content', 'custompost-mutations');
+        }
+
         $customPostID = $form_data[MutationInputProperties::ID];
         if ($customPostID) {
             // If already exists any of these errors above, return errors
