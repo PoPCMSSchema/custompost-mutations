@@ -20,7 +20,7 @@ class Component extends AbstractComponent
     {
         return [
             \PoPSchema\CustomPosts\Component::class,
-            \PoPSchema\UserState\Component::class,
+            \PoPSchema\UserStateMutations\Component::class,
         ];
     }
 }

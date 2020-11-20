@@ -6,17 +6,19 @@ namespace PoPSchema\CustomPostMutations\MutationResolvers;
 
 use PoP\Hooks\Facades\HooksAPIFacade;
 use PoP\ComponentModel\ErrorHandling\Error;
-use PoP\ComponentModel\State\ApplicationState;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\LooseContracts\Facades\NameResolverFacade;
 use PoPSchema\CustomPosts\Enums\CustomPostStatusEnum;
 use PoPSchema\CustomPosts\Facades\CustomPostTypeAPIFacade;
 use PoP\ComponentModel\Facades\Instances\InstanceManagerFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
+use PoPSchema\UserStateMutations\MutationResolvers\ValidateUserLoggedInMutationResolverTrait;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
 
 abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMutationResolver implements CustomPostMutationResolverInterface
 {
+    use ValidateUserLoggedInMutationResolverTrait;
+
     public const HOOK_EXECUTE_CREATE_OR_UPDATE = __CLASS__ . ':execute-create-or-update';
     public const HOOK_EXECUTE_CREATE = __CLASS__ . ':execute-create';
     public const HOOK_EXECUTE_UPDATE = __CLASS__ . ':execute-update';
@@ -31,12 +33,11 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     public function validateErrors(array $form_data): ?array
     {
         $errors = [];
-        $translationAPI = TranslationAPIFacade::getInstance();
 
         // Check that the user is logged-in
-        $vars = ApplicationState::getVars();
-        if (!$vars['global-userstate']['is-user-logged-in']) {
-            $errors[] = $translationAPI->__('You must be logged in to edit content', 'custompost-mutations');
+        $this->validateUserIsLoggedIn($errors);
+        if ($errors) {
+            return $errors;
         }
 
         $customPostID = $form_data[MutationInputProperties::ID];
