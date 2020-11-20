@@ -93,10 +93,10 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         $userRoleTypeDataResolver = UserRoleTypeDataResolverFacade::getInstance();
         $vars = ApplicationState::getVars();
         $userID = $vars['global-userstate']['current-user-id'];
-        $editPostsCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_CUSTOMPOSTS_CAPABILITY);
+        $editCustomPostsCapability = $nameResolver->getName(LooseContractSet::NAME_EDIT_CUSTOMPOSTS_CAPABILITY);
         if (!$userRoleTypeDataResolver->userCan(
             $userID,
-            $editPostsCapability
+            $editCustomPostsCapability
         )) {
             $errors[] = $translationAPI->__('Your user doesn\'t have permission for editing custom posts.', 'custompost-mutations');
             return;
