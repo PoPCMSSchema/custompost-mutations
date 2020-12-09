@@ -103,7 +103,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         }
 
         // Check if the user can publish custom posts
-        if ($form_data[MutationInputProperties::STATUS] == Status::PUBLISHED) {
+        if (isset($form_data[MutationInputProperties::STATUS]) && $form_data[MutationInputProperties::STATUS] == Status::PUBLISHED) {
             $publishCustomPostsCapability = $nameResolver->getName(LooseContractSet::NAME_PUBLISH_CUSTOMPOSTS_CAPABILITY);
             if (!$userRoleTypeDataResolver->userCan(
                 $userID,
@@ -130,7 +130,8 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
          * @var CustomPostStatusEnum
          */
         $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
-        if ($status = $form_data[MutationInputProperties::STATUS]) {
+        if (isset($form_data[MutationInputProperties::STATUS])) {
+            $status = $form_data[MutationInputProperties::STATUS];
             if (!in_array($status, $customPostStatusEnum->getValues())) {
                 $errors[] = sprintf(
                     $translationAPI->__('Status \'%s\' is not supported', 'custompost-mutations'),
@@ -163,7 +164,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     {
         $translationAPI = TranslationAPIFacade::getInstance();
 
-        $customPostID = $form_data[MutationInputProperties::ID];
+        $customPostID = $form_data[MutationInputProperties::ID] ?? null;
         if (!$customPostID) {
             $errors[] = $translationAPI->__('The ID is missing', 'custompost-mutations');
             return;
@@ -232,7 +233,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     protected function getUpdateCustomPostData(array $form_data): array
     {
         $post_data = array(
-            'id' => $form_data[MutationInputProperties::ID],
+            'id' => $form_data[MutationInputProperties::ID] ?? null,
         );
         $this->addCreateUpdateCustomPostData($post_data, $form_data);
 

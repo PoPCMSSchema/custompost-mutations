@@ -25,7 +25,7 @@ class SchemaDefinitionHelpers
         bool $addCustomPostID
     ): array {
         $key = get_class($typeResolver) . '-' . $fieldName;
-        if (is_null(self::$schemaFieldArgsCache[$key])) {
+        if (!isset(self::$schemaFieldArgsCache[$key])) {
             $hooksAPI = HooksAPIFacade::getInstance();
             $translationAPI = TranslationAPIFacade::getInstance();
             $instanceManager = InstanceManagerFacade::getInstance();
