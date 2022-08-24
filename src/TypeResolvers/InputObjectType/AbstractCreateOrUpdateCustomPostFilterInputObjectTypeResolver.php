@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PoPCMSSchema\CustomPostMutations\TypeResolvers\InputObjectType;
 
+use PoP\ComponentModel\TypeResolvers\InputTypeResolverInterface;
 use PoP\ComponentModel\Schema\SchemaTypeModifiers;
 use PoP\ComponentModel\TypeResolvers\InputObjectType\AbstractInputObjectTypeResolver;
 use PoP\ComponentModel\TypeResolvers\ScalarType\IDScalarTypeResolver;
@@ -23,6 +24,7 @@ abstract class AbstractCreateOrUpdateCustomPostFilterInputObjectTypeResolver ext
     }
     final protected function getCustomPostStatusEnumTypeResolver(): CustomPostStatusEnumTypeResolver
     {
+        /** @var CustomPostStatusEnumTypeResolver */
         return $this->customPostStatusEnumTypeResolver ??= $this->instanceManager->getInstance(CustomPostStatusEnumTypeResolver::class);
     }
     final public function setIDScalarTypeResolver(IDScalarTypeResolver $idScalarTypeResolver): void
@@ -31,6 +33,7 @@ abstract class AbstractCreateOrUpdateCustomPostFilterInputObjectTypeResolver ext
     }
     final protected function getIDScalarTypeResolver(): IDScalarTypeResolver
     {
+        /** @var IDScalarTypeResolver */
         return $this->idScalarTypeResolver ??= $this->instanceManager->getInstance(IDScalarTypeResolver::class);
     }
     final public function setStringScalarTypeResolver(StringScalarTypeResolver $stringScalarTypeResolver): void
@@ -39,6 +42,7 @@ abstract class AbstractCreateOrUpdateCustomPostFilterInputObjectTypeResolver ext
     }
     final protected function getStringScalarTypeResolver(): StringScalarTypeResolver
     {
+        /** @var StringScalarTypeResolver */
         return $this->stringScalarTypeResolver ??= $this->instanceManager->getInstance(StringScalarTypeResolver::class);
     }
 
@@ -47,6 +51,9 @@ abstract class AbstractCreateOrUpdateCustomPostFilterInputObjectTypeResolver ext
         return $this->__('Input to update a custom post', 'custompost-mutations');
     }
 
+    /**
+     * @return array<string, InputTypeResolverInterface>
+     */
     public function getInputFieldNameTypeResolvers(): array
     {
         return array_merge(

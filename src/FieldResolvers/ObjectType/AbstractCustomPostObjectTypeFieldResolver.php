@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PoPCMSSchema\CustomPostMutations\FieldResolvers\ObjectType;
 
+use PoP\ComponentModel\TypeResolvers\InputTypeResolverInterface;
 use PoP\ComponentModel\FieldResolvers\ObjectType\AbstractObjectTypeFieldResolver;
 use PoP\ComponentModel\Schema\SchemaTypeModifiers;
 use PoP\ComponentModel\TypeResolvers\ObjectType\ObjectTypeResolverInterface;
@@ -21,9 +22,13 @@ abstract class AbstractCustomPostObjectTypeFieldResolver extends AbstractObjectT
     }
     final protected function getCustomPostUpdateFilterInputObjectTypeResolver(): CustomPostUpdateFilterInputObjectTypeResolver
     {
+        /** @var CustomPostUpdateFilterInputObjectTypeResolver */
         return $this->customPostUpdateFilterInputObjectTypeResolver ??= $this->instanceManager->getInstance(CustomPostUpdateFilterInputObjectTypeResolver::class);
     }
 
+    /**
+     * @return string[]
+     */
     public function getFieldNamesToResolve(): array
     {
         return [
@@ -39,6 +44,9 @@ abstract class AbstractCustomPostObjectTypeFieldResolver extends AbstractObjectT
         };
     }
 
+    /**
+     * @return array<string,InputTypeResolverInterface>
+     */
     public function getFieldArgNameTypeResolvers(ObjectTypeResolverInterface $objectTypeResolver, string $fieldName): array
     {
         return match ($fieldName) {

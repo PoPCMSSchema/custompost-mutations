@@ -42,6 +42,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
     final protected function getCustomPostStatusEnumTypeResolver(): CustomPostStatusEnumTypeResolver
     {
+        /** @var CustomPostStatusEnumTypeResolver */
         return $this->customPostStatusEnumTypeResolver ??= $this->instanceManager->getInstance(CustomPostStatusEnumTypeResolver::class);
     }
     final public function setNameResolver(NameResolverInterface $nameResolver): void
@@ -50,6 +51,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
     final protected function getNameResolver(): NameResolverInterface
     {
+        /** @var NameResolverInterface */
         return $this->nameResolver ??= $this->instanceManager->getInstance(NameResolverInterface::class);
     }
     final public function setUserRoleTypeAPI(UserRoleTypeAPIInterface $userRoleTypeAPI): void
@@ -58,6 +60,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
     final protected function getUserRoleTypeAPI(): UserRoleTypeAPIInterface
     {
+        /** @var UserRoleTypeAPIInterface */
         return $this->userRoleTypeAPI ??= $this->instanceManager->getInstance(UserRoleTypeAPIInterface::class);
     }
     final public function setCustomPostTypeAPI(CustomPostTypeAPIInterface $customPostTypeAPI): void
@@ -66,6 +69,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
     final protected function getCustomPostTypeAPI(): CustomPostTypeAPIInterface
     {
+        /** @var CustomPostTypeAPIInterface */
         return $this->customPostTypeAPI ??= $this->instanceManager->getInstance(CustomPostTypeAPIInterface::class);
     }
     final public function setCustomPostTypeMutationAPI(CustomPostTypeMutationAPIInterface $customPostTypeMutationAPI): void
@@ -74,6 +78,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
     final protected function getCustomPostTypeMutationAPI(): CustomPostTypeMutationAPIInterface
     {
+        /** @var CustomPostTypeMutationAPIInterface */
         return $this->customPostTypeMutationAPI ??= $this->instanceManager->getInstance(CustomPostTypeMutationAPIInterface::class);
     }
 
@@ -306,6 +311,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     protected function additionals(int|string $customPostID, FieldDataAccessorInterface $fieldDataAccessor): void
     {
     }
+    /**
+     * @param array<string,mixed> $log
+     */
     protected function updateAdditionals(int|string $customPostID, FieldDataAccessorInterface $fieldDataAccessor, array $log): void
     {
     }
@@ -317,7 +325,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     // {
     //     $post_data['custompost-type'] = $this->getCustomPostType();
     // }
-
+    /**
+     * @param array<string,mixed> $post_data
+     */
     protected function addCreateUpdateCustomPostData(array &$post_data, FieldDataAccessorInterface $fieldDataAccessor): void
     {
         if ($fieldDataAccessor->hasValue(MutationInputProperties::CONTENT)) {
@@ -331,6 +341,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         }
     }
 
+    /**
+     * @return array<string,mixed>
+     */
     protected function getUpdateCustomPostData(FieldDataAccessorInterface $fieldDataAccessor): array
     {
         $post_data = array(
@@ -341,6 +354,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
         return $post_data;
     }
 
+    /**
+     * @return array<string,mixed>
+     */
     protected function getCreateCustomPostData(FieldDataAccessorInterface $fieldDataAccessor): array
     {
         $post_data = [
@@ -352,7 +368,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
 
     /**
-     * @param array<string, mixed> $post_data
+     * @param array<string,mixed> $post_data
      * @return string|int the ID of the updated custom post
      * @throws CustomPostCRUDMutationException If there was an error (eg: Custom Post does not exists)
      */
@@ -365,6 +381,9 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     {
     }
 
+    /**
+     * @return array<string,string>|null[]
+     */
     protected function getUpdateCustomPostDataLog(int|string $customPostID, FieldDataAccessorInterface $fieldDataAccessor): array
     {
         return [
@@ -404,7 +423,7 @@ abstract class AbstractCreateUpdateCustomPostMutationResolver extends AbstractMu
     }
 
     /**
-     * @param array<string, mixed> $post_data
+     * @param array<string,mixed> $post_data
      * @return string|int the ID of the created custom post
      * @throws CustomPostCRUDMutationException If there was an error (eg: some Custom Post creation validation failed)
      */
