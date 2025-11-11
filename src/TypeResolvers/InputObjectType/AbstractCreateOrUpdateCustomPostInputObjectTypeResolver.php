@@ -7,6 +7,7 @@ namespace PoPCMSSchema\CustomPostMutations\TypeResolvers\InputObjectType;
 use PoPCMSSchema\CustomPostMutations\Constants\MutationInputProperties;
 use PoPCMSSchema\CustomPostMutations\TypeResolvers\InputObjectType\CustomPostParentByOneofInputObjectTypeResolver;
 use PoPCMSSchema\CustomPosts\TypeResolvers\EnumType\CustomPostStatusEnumTypeResolver;
+use PoPSchema\ExtendedSchemaCommons\TypeResolvers\ScalarType\NonEmptyStringScalarTypeResolver;
 use PoPSchema\SchemaCommons\TypeResolvers\ScalarType\DateTimeScalarTypeResolver;
 use PoP\ComponentModel\Schema\SchemaTypeModifiers;
 use PoP\ComponentModel\TypeResolvers\InputObjectType\AbstractInputObjectTypeResolver;
@@ -19,6 +20,7 @@ abstract class AbstractCreateOrUpdateCustomPostInputObjectTypeResolver extends A
     private ?CustomPostStatusEnumTypeResolver $customPostStatusEnumTypeResolver = null;
     private ?IDScalarTypeResolver $idScalarTypeResolver = null;
     private ?StringScalarTypeResolver $stringScalarTypeResolver = null;
+    private ?NonEmptyStringScalarTypeResolver $nonEmptyStringScalarTypeResolver = null;
     private ?CustomPostContentAsOneofInputObjectTypeResolver $customPostContentAsOneofInputObjectTypeResolver = null;
     private ?DateTimeScalarTypeResolver $dateTimeScalarTypeResolver = null;
     private ?CustomPostParentByOneofInputObjectTypeResolver $customPostParentByOneofInputObjectTypeResolver = null;
@@ -49,6 +51,15 @@ abstract class AbstractCreateOrUpdateCustomPostInputObjectTypeResolver extends A
             $this->stringScalarTypeResolver = $stringScalarTypeResolver;
         }
         return $this->stringScalarTypeResolver;
+    }
+    final protected function getNonEmptyStringScalarTypeResolver(): NonEmptyStringScalarTypeResolver
+    {
+        if ($this->nonEmptyStringScalarTypeResolver === null) {
+            /** @var NonEmptyStringScalarTypeResolver */
+            $nonEmptyStringScalarTypeResolver = $this->instanceManager->getInstance(NonEmptyStringScalarTypeResolver::class);
+            $this->nonEmptyStringScalarTypeResolver = $nonEmptyStringScalarTypeResolver;
+        }
+        return $this->nonEmptyStringScalarTypeResolver;
     }
     final protected function getCustomPostContentAsOneofInputObjectTypeResolver(): CustomPostContentAsOneofInputObjectTypeResolver
     {
@@ -99,7 +110,7 @@ abstract class AbstractCreateOrUpdateCustomPostInputObjectTypeResolver extends A
                 MutationInputProperties::TITLE => $this->getStringScalarTypeResolver(),
                 MutationInputProperties::CONTENT_AS => $this->getContentAsOneofInputObjectTypeResolver(),
                 MutationInputProperties::EXCERPT => $this->getStringScalarTypeResolver(),
-                MutationInputProperties::SLUG => $this->getStringScalarTypeResolver(),
+                MutationInputProperties::SLUG => $this->getNonEmptyStringScalarTypeResolver(),
                 MutationInputProperties::STATUS => $this->getCustomPostStatusEnumTypeResolver(),
                 MutationInputProperties::DATE => $this->getDateTimeScalarTypeResolver(),
                 MutationInputProperties::GMT_DATE => $this->getDateTimeScalarTypeResolver(),
