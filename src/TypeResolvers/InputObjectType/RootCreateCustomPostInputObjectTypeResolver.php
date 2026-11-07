@@ -11,11 +11,6 @@ class RootCreateCustomPostInputObjectTypeResolver extends AbstractCreateOrUpdate
         return 'RootCreateCustomPostInput';
     }
 
-    public function getTypeDescription(): ?string
-    {
-        return $this->__('Input to create a custom post', 'gatographql');
-    }
-
     protected function addCustomPostInputField(): bool
     {
         return false;
